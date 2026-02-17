@@ -1,5 +1,5 @@
 from typing import List
-from langchain.tools.render import render_text_description
+from langchain_core.tools.render import render_text_description
 from langchain_core.tools import BaseTool
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from .app_setup import app

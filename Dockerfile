@@ -1,12 +1,16 @@
 # Dockerfile
-FROM python:3.12-slim
+FROM python:3.11-slim
 
 # Set the working directory inside the container
 WORKDIR /app
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+    build-essential \
     npm && \
     rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and build tools to avoid issues with building wheels
+RUN pip install --upgrade pip setuptools wheel
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt requirements.txt
