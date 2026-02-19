@@ -54,10 +54,14 @@ async def chat():
         return jsonify({"response": "Please provide a message."})
     try:
         current_query_refinement_chain = get_query_refinement_chain()
-        refined_keywords_output = await asyncio.wait_for(current_query_refinement_chain.ainvoke({
-                "user_question": user_message, "ai_response": utils_module.last_ai_response
-            }), timeout=15)
-        refined_keywords = get_plain_text_content(refined_keywords_output)
+        refined_keywords = ""
+        if current_query_refinement_chain is not None:
+            refined_keywords_output = await asyncio.wait_for(current_query_refinement_chain.ainvoke({
+                    "user_question": user_message, "ai_response": utils_module.last_ai_response
+                }), timeout=15)
+            refined_keywords = get_plain_text_content(refined_keywords_output)
+        else:
+            app.logger.warning("Query refinement chain is None, skipping query refinement.")
 
         memory_search_query = user_message
         if refined_keywords and refined_keywords.lower() not in ["none", ""]:
@@ -149,11 +153,14 @@ async def record():
             user_message = transcription
 
             current_query_refinement_chain = get_query_refinement_chain()
-            refined_keywords_output = await asyncio.wait_for(current_query_refinement_chain.ainvoke({
-                "user_question": user_message, "ai_response": utils_module.last_ai_response
-            }), timeout=15)
-
-            refined_keywords = get_plain_text_content(refined_keywords_output)
+            refined_keywords = ""
+            if current_query_refinement_chain is not None:
+                refined_keywords_output = await asyncio.wait_for(current_query_refinement_chain.ainvoke({
+                    "user_question": user_message, "ai_response": utils_module.last_ai_response
+                }), timeout=15)
+                refined_keywords = get_plain_text_content(refined_keywords_output)
+            else:
+                app.logger.warning("Query refinement chain is None in /record, skipping.")
             memory_search_query = transcription
             if refined_keywords and refined_keywords.lower() not in ["none", ""]: memory_search_query += " " + refined_keywords
             relevant_memories = retrieve_relevant_memories(memory_search_query)

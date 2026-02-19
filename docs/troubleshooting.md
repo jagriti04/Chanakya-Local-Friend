@@ -37,10 +37,35 @@ This page lists common issues you might encounter while setting up or running Ch
 ## Docker and Networking Errors
 
 **Error: Cannot connect to Ollama/STT/TTS from the Chanakya Docker container.**
-- **Cause:** The Chanakya container cannot reach the other services on the network.
-- **Solution:**
-  -   **Use `--network="host"`:** This is the simplest solution. When you run the Chanakya Docker container, use the `--network="host"` flag. This makes the container share the host's network, and you can use `http://localhost:<PORT>` in your `.env` file to refer to services running on the same machine.
-  -   **Without `--network="host"`:** If you are not using host networking (e.g., you are on a default bridge network), you may need to use `http://host.docker.internal:<PORT>` (on Docker Desktop for Mac/Windows) or the IP address of the `docker0` bridge on Linux to connect to services running on the host.
+- **Cause:** The Chanakya container cannot reach services running on the host machine.
+- **Solution:** Choose one of the following two networking approaches:
+
+### Option 1: Host Networking (Simplest)
+Use the `--network="host"` flag when running the Chanakya Docker container. This makes the container share the host's network stack directly.
+- **Usage:** `docker run --network="host" ...`
+- **Configuration:** In your `.env` file, you can use `http://localhost:<PORT>` (e.g., `http://localhost:11434` for Ollama).
+- **Note:** This is the easiest setup but provides less isolation.
+
+### Option 2: Bridge Networking (Recommended)
+This approach keeps the container isolated in its own network but requires a few extra configuration steps to talk to the host.
+
+1.  **Resolve host address (Linux/WSL):**
+    On Linux and WSL, `host.docker.internal` is not mapped by default. Add the `--add-host` flag to your run command:
+    ```bash
+    sudo docker run -d --name chanakya --add-host=host.docker.internal:host-gateway ...
+    ```
+2.  **Bind Ollama to all interfaces:**
+    By default, Ollama only listens on `127.0.0.1`. For a bridged container to reach it, Ollama must listen on `0.0.0.0`.
+    ```bash
+    # Example for Linux (systemd)
+    sudo systemctl edit ollama
+    # Add the following lines:
+    # [Service]
+    # Environment="OLLAMA_HOST=0.0.0.0:11434"
+    sudo systemctl daemon-reload
+    sudo systemctl restart ollama
+    ```
+3.  **Configuration:** In your `.env` file, use `http://host.docker.internal:<PORT>` (e.g., `http://host.docker.internal:11434` for Ollama).
 
 ## Microphone and Audio Issues (Browser)
 
