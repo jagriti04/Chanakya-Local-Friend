@@ -10,11 +10,12 @@ DEBUG_MODE = os.environ.get('FLASK_DEBUG', 'True').lower() in ('true', '1', 't')
 WAKE_WORD = os.environ.get('WAKE_WORD', "Chanakya")
 
 # LLM Configuration
-LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'ollama')  # Default to 'ollama'
-LLM_ENDPOINT = os.environ.get('LLM_ENDPOINT')
-LLM_MODEL_NAME = os.environ.get('LLM_MODEL_NAME') # e.g., hf.co/NikolayKozloff/Jan-nano-Q8_0-GGUF:latest
+LLM_PROVIDER = os.environ.get('LLM_PROVIDER', 'ollama').strip().strip('"').strip("'")
+LLM_ENDPOINT = os.environ.get('LLM_ENDPOINT', '').strip().strip('"').strip("'") or None
+_raw_model_name = os.environ.get('LLM_MODEL_NAME', '')
+LLM_MODEL_NAME = _raw_model_name.strip().strip('"').strip("'") or None
 LLM_NUM_CTX = int(os.environ.get('LLM_NUM_CTX', 2048))
-LLM_API_KEY = os.environ.get('LLM_API_KEY') # For OpenAI-compatible endpoints
+LLM_API_KEY = os.environ.get('LLM_API_KEY', '').strip().strip('"').strip("'") or None
 
 # Configuration for a smaller, secondary model (optional)
 # If these are not set in the .env file, they will fall back to the primary model's configuration.
@@ -55,3 +56,10 @@ CLIENT_COUNT_FILE = os.environ.get('CLIENT_COUNT_FILE', "client_count.txt")
 # Assuming chanakya.py is in the project root. If not, adjust '..' accordingly.
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__)) 
 SCRIPTS_DIR = os.path.join(PROJECT_ROOT, "scripts")
+
+# Debug: Print resolved config values at startup
+print(f"[CONFIG DEBUG] LLM_PROVIDER='{LLM_PROVIDER}'")
+print(f"[CONFIG DEBUG] LLM_ENDPOINT='{LLM_ENDPOINT}'")
+print(f"[CONFIG DEBUG] LLM_MODEL_NAME='{LLM_MODEL_NAME}' (raw env: '{_raw_model_name}')")
+print(f"[CONFIG DEBUG] LLM_MODEL_NAME_SMALL='{LLM_MODEL_NAME_SMALL}'")
+print(f"[CONFIG DEBUG] LLM_ENDPOINT_SMALL='{LLM_ENDPOINT_SMALL}'")

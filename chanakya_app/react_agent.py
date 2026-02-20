@@ -2,12 +2,12 @@ import re
 import json
 from typing import Union, Any
 from langchain_core.agents import AgentAction, AgentFinish
-from langchain.agents import AgentExecutor, AgentOutputParser
+from langchain_classic.agents import AgentExecutor, AgentOutputParser
 from langchain_core.exceptions import OutputParserException
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain.agents.format_scratchpad import format_log_to_str
+from langchain_classic.agents.format_scratchpad import format_log_to_str
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
 import scripts.config as config

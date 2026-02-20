@@ -6,7 +6,7 @@ This guide will walk you through the process of setting up Chanakya and its depe
 
 Before you begin, ensure you have the following installed on your system(s):
 
-1.  **Python:** Version 3.12.2 or higher.
+1.  **Python:** Version 3.11 (Recommended for compatibility).
 2.  **Docker & Docker Compose:** For running Chanakya and its dependent services (Ollama, STT, TTS, MCP Tools). This is the recommended way to run the dependencies.
 3.  **`uv` (Optional but Recommended):** For fast Python environment setup if not using Docker for Chanakya itself. You can install it from [Astral's `uv` GitHub page](https://github.com/astral-sh/uv).
 4.  **Ollama:** You need a running instance of Ollama.
@@ -94,7 +94,7 @@ cd Chanakya-Local-Friend
 - **Option B: Local Python Environment**
   - Create and activate a virtual environment using `uv`:
     ```bash
-    uv venv --python 3.12.2
+    uv venv --python 3.11
     source .venv/bin/activate
     ```
   - Install the required dependencies:

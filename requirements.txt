@@ -9,6 +9,7 @@ flask_cors
 langchain_ollama
 langchain_openai
 langchain
+langchain_classic
 langchain_mcp_adapters
 flask[async]
 uv
