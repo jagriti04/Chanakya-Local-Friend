@@ -43,10 +43,30 @@ This guide will get you up and running in a few minutes. For more detailed instr
    - Edit `.env` and `mcp_config_file.json` with your settings. See the [Configuration Guide](./docs/configuration.md) for details.
 4. **Build and run with Docker:  or (for [Local Python Environment](./docs/getting-started.md))**
    
+```bash
+sudo docker build -t chanakya-assistant .
+sudo docker run --restart=always -d --network="host" --env-file .env --name chanakya chanakya-assistant
+
+# To update the container during development, use the restart script:
+# python restart_app.py
+```
+
+   **Alternative: Conda Setup (Non-Docker)**
+
+   If you prefer not to use Docker, you can run Chanakya directly with Conda:
+
    ```bash
-   sudo docker build -t chanakya-assistant .
-   sudo docker run --restart=always -d --network="host" --env-file .env --name chanakya chanakya-assistant
+   # Create and activate conda environment
+   conda create -n chanakya python=3.11 -y
+   conda activate chanakya
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Run Chanakya
+   python chanakya.py
    ```
+
 5. **Access Chanakya:**
    
    - Open your browser and navigate to `http://localhost:5001`.
