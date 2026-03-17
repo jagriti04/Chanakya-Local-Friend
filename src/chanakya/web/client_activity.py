@@ -6,6 +6,7 @@ Manages active_clients dict and periodic cleanup of inactive sessions.
 
 import threading
 import time
+
 from .. import config
 
 INACTIVE_THRESHOLD = config.CLIENT_INACTIVE_THRESHOLD
@@ -26,9 +27,7 @@ def remove_inactive_clients():
     current_time = time.time()
     with client_count_lock:
         inactive_ids = [
-            cid
-            for cid, la in active_clients.items()
-            if current_time - la > INACTIVE_THRESHOLD
+            cid for cid, la in active_clients.items() if current_time - la > INACTIVE_THRESHOLD
         ]
         for cid in inactive_ids:
             del active_clients[cid]

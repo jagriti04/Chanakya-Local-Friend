@@ -8,11 +8,13 @@ Tools are cached in CACHED_MCP_TOOLS for reuse.
 import os
 import sys
 from typing import List
-from langchain_core.tools.render import render_text_description
+
 from langchain_core.tools import BaseTool
+from langchain_core.tools.render import render_text_description
 from langchain_mcp_adapters.client import MultiServerMCPClient
+
 from ..web.app_setup import app
-from .config_loader import load_mcp_config_internal, MCP_CONFIG_FILENAME
+from .config_loader import MCP_CONFIG_FILENAME, load_mcp_config_internal
 
 CACHED_MCP_TOOLS: List[BaseTool] = []
 MCP_TOOLS_LOADED_FLAG = False
@@ -61,31 +63,23 @@ async def load_all_mcp_tools_async(force_reload=False) -> List[BaseTool]:
             cfg_local[name] = server_config_for_client
 
     if not cfg_local:
-        app.logger.warning(
-            "MCP client config is effectively empty. No tools will be loaded."
-        )
+        app.logger.warning("MCP client config is effectively empty. No tools will be loaded.")
         CACHED_MCP_TOOLS = []
         MCP_TOOLS_LOADED_FLAG = True
         mcp_tool_descriptions_for_llm = "No specialized tools available."
         mcp_tool_names_for_llm = ""
         return []
 
-    app.logger.info(
-        f"Initializing MCPClient for Chanakya with processed config: {cfg_local}"
-    )
+    app.logger.info(f"Initializing MCPClient for Chanakya with processed config: {cfg_local}")
     client = MultiServerMCPClient(cfg_local)
     app.logger.info("Loading all MCP tools via client for Chanakya (ASYNCHRONOUSLY)...")
 
     tools: List[BaseTool] = []
     try:
         tools = await client.get_tools()
-        app.logger.info(
-            f"Successfully fetched {len(tools)} tools from MCP client asynchronously."
-        )
+        app.logger.info(f"Successfully fetched {len(tools)} tools from MCP client asynchronously.")
     except Exception as e_gen:
-        app.logger.error(
-            f"General error during client.get_tools() (async): {e_gen}", exc_info=True
-        )
+        app.logger.error(f"General error during client.get_tools() (async): {e_gen}", exc_info=True)
         tools = []
 
     CACHED_MCP_TOOLS = tools

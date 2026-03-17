@@ -12,23 +12,20 @@ import asyncio
 import os
 import threading
 
-# Import from the new modular structure
-from src.chanakya.web.app_setup import app
 from src.chanakya.core.memory_management import create_table
-from src.chanakya.services.tool_loader import load_all_mcp_tools_async
 from src.chanakya.services.audio_service import init_audio_services
-from src.chanakya.web.routes import background_thread
+from src.chanakya.services.tool_loader import load_all_mcp_tools_async
 
 # This import is necessary to register the routes
-from src.chanakya.web import routes
+# Import from the new modular structure
+from src.chanakya.web.app_setup import app
+from src.chanakya.web.routes import background_thread
 
 if __name__ == "__main__":
     create_table()
     init_audio_services()
 
-    app.logger.info(
-        "Attempting to load MCP tools at startup (async via asyncio.run)..."
-    )
+    app.logger.info("Attempting to load MCP tools at startup (async via asyncio.run)...")
     try:
         asyncio.run(load_all_mcp_tools_async())
     except RuntimeError as e:
@@ -70,10 +67,10 @@ if __name__ == "__main__":
     key_file = "certs/key.pem"
     ssl_context = None
     if os.path.exists(cert_file) and os.path.exists(key_file):
-        app.logger.info(f"Found certificate and key. Starting with HTTPS.")
+        app.logger.info("Found certificate and key. Starting with HTTPS.")
         ssl_context = (cert_file, key_file)
     else:
-        app.logger.info(f"Certificate and key not found. Starting with HTTP.")
+        app.logger.info("Certificate and key not found. Starting with HTTP.")
 
     app.logger.info(
         "Starting Chanakya Flask app (ReAct Agent, Async Routes, Per-Request LLM/Agent, Merged Tools, nest_asyncio)..."

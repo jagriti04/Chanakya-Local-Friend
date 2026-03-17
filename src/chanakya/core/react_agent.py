@@ -5,32 +5,33 @@ Provides get_chanakya_react_agent_with_history() to create an agent
 with conversation history and configured tools.
 """
 
-import re
 import json
-from typing import Union, Any
-from langchain_core.agents import AgentAction, AgentFinish
+import re
+from typing import Any, Union
+
 from langchain_classic.agents import AgentExecutor, AgentOutputParser
+from langchain_classic.agents.format_scratchpad import format_log_to_str
+from langchain_core.agents import AgentAction, AgentFinish
 from langchain_core.exceptions import OutputParserException
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_classic.agents.format_scratchpad import format_log_to_str
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
-from .. import config
-from ..web.app_setup import app
-from ..services import tool_loader
-from .chat_history import get_chat_history
 
+from .. import config
 from ..prompts.prompts import REACT_AGENT_PROMPT_TEMPLATE_STR
+from ..services import tool_loader
+from ..web.app_setup import app
+from .chat_history import get_chat_history
 
 
 class CustomReActSingleInputOutputParser(AgentOutputParser):
     def _parse_json_input(self, tool_input_str: str) -> Any:
         tool_input_str_stripped = tool_input_str.strip()
-        if tool_input_str_stripped.startswith(
-            ("{", "[")
-        ) and tool_input_str_stripped.endswith(("}", "]")):
+        if tool_input_str_stripped.startswith(("{", "[")) and tool_input_str_stripped.endswith(
+            ("}", "]")
+        ):
             try:
                 parsed_json = json.loads(tool_input_str_stripped)
                 return parsed_json
@@ -54,9 +55,7 @@ class CustomReActSingleInputOutputParser(AgentOutputParser):
         )
 
         if outer_think_match:
-            app.logger.debug(
-                "ReAct Parser: Found and stripped outer <think>...</think> block."
-            )
+            app.logger.debug("ReAct Parser: Found and stripped outer <think>...</think> block.")
             content_to_parse = outer_think_match.group(1).strip()  # Parse what's inside
         else:
             app.logger.debug(
@@ -143,9 +142,7 @@ class CustomReActSingleInputOutputParser(AgentOutputParser):
             ]
             match = None
             for pattern_str in patterns_to_try:
-                match = re.search(
-                    pattern_str, action_input_pattern_text, re.DOTALL | re.IGNORECASE
-                )
+                match = re.search(pattern_str, action_input_pattern_text, re.DOTALL | re.IGNORECASE)
                 if match:
                     break
 
@@ -159,20 +156,14 @@ class CustomReActSingleInputOutputParser(AgentOutputParser):
             action_tool = match.group(1).strip()
             action_input_str_raw = match.group(2).strip()
             action_input_str_for_json = action_input_str_raw
-            if (
-                action_input_str_raw.startswith('"')
-                and action_input_str_raw.endswith('"')
-            ) or (
-                action_input_str_raw.startswith("'")
-                and action_input_str_raw.endswith("'")
+            if (action_input_str_raw.startswith('"') and action_input_str_raw.endswith('"')) or (
+                action_input_str_raw.startswith("'") and action_input_str_raw.endswith("'")
             ):
                 temp_unquoted = action_input_str_raw[1:-1]
                 if (
-                    temp_unquoted.strip().startswith("{")
-                    and temp_unquoted.strip().endswith("}")
+                    temp_unquoted.strip().startswith("{") and temp_unquoted.strip().endswith("}")
                 ) or (
-                    temp_unquoted.strip().startswith("[")
-                    and temp_unquoted.strip().endswith("]")
+                    temp_unquoted.strip().startswith("[") and temp_unquoted.strip().endswith("]")
                 ):
                     action_input_str_for_json = (
                         temp_unquoted.replace('\\"', '"')
@@ -181,18 +172,12 @@ class CustomReActSingleInputOutputParser(AgentOutputParser):
                     )
 
             tool_input = self._parse_json_input(action_input_str_for_json)
-            app.logger.info(
-                f"ReAct Parser: Parsed Action: {action_tool}, Input: {tool_input}"
-            )
-            return AgentAction(
-                action_tool, tool_input, original_cleaned_text
-            )  # Log original
+            app.logger.info(f"ReAct Parser: Parsed Action: {action_tool}, Input: {tool_input}")
+            return AgentAction(action_tool, tool_input, original_cleaned_text)  # Log original
 
         if includes_answer:
             _, answer_content = content_for_keywords.rsplit("Final Answer:", 1)
-            app.logger.info(
-                f"ReAct Parser: Parsed Final Answer: {answer_content.strip()}"
-            )
+            app.logger.info(f"ReAct Parser: Parsed Final Answer: {answer_content.strip()}")
             return AgentFinish(
                 {"output": answer_content.strip()}, original_cleaned_text
             )  # Log original
@@ -267,9 +252,7 @@ def get_chanakya_react_agent_with_history():
 
     agent_chain = (
         RunnablePassthrough.assign(
-            agent_scratchpad=lambda x: format_log_to_str(
-                x.get("intermediate_steps", [])
-            )
+            agent_scratchpad=lambda x: format_log_to_str(x.get("intermediate_steps", []))
         )
         | react_prompt_template
         | current_chanakya_llm

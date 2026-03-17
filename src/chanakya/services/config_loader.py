@@ -4,8 +4,9 @@ MCP configuration loader.
 Provides load_mcp_config_internal() to read and parse mcp_config_file.json.
 """
 
-import os
 import json
+import os
+
 from ..web.app_setup import app
 
 MCP_CONFIG_FILENAME = "./mcp_config_file.json"

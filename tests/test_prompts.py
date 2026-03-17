@@ -10,13 +10,15 @@ import unittest
 
 sys.path.insert(0, "/home/jailuser/git")
 
-from src.chanakya.prompts.prompts import (
-    REACT_AGENT_PROMPT_TEMPLATE_STR,
-    QUERY_REFINEMENT_TEMPLATE_STR,
+from src.chanakya.prompts import (
+    QUERY_REFINEMENT_TEMPLATE_STR as QUERY_FROM_INIT,
 )
 from src.chanakya.prompts import (
     REACT_AGENT_PROMPT_TEMPLATE_STR as REACT_FROM_INIT,
-    QUERY_REFINEMENT_TEMPLATE_STR as QUERY_FROM_INIT,
+)
+from src.chanakya.prompts.prompts import (
+    QUERY_REFINEMENT_TEMPLATE_STR,
+    REACT_AGENT_PROMPT_TEMPLATE_STR,
 )
 
 
@@ -143,6 +145,7 @@ class TestPromptsModuleExports(unittest.TestCase):
     def test_all_list_contains_both_names(self):
         """__all__ in prompts/__init__.py should declare both exports."""
         import src.chanakya.prompts as prompts_pkg
+
         if hasattr(prompts_pkg, "__all__"):
             self.assertIn("REACT_AGENT_PROMPT_TEMPLATE_STR", prompts_pkg.__all__)
             self.assertIn("QUERY_REFINEMENT_TEMPLATE_STR", prompts_pkg.__all__)
@@ -155,6 +158,7 @@ class TestPromptTemplateUsability(unittest.TestCase):
         """REACT_AGENT_PROMPT_TEMPLATE_STR should be valid for PromptTemplate."""
         try:
             from langchain_core.prompts import PromptTemplate
+
             # This should not raise an error
             template = PromptTemplate.from_template(
                 template=REACT_AGENT_PROMPT_TEMPLATE_STR,
@@ -168,6 +172,7 @@ class TestPromptTemplateUsability(unittest.TestCase):
         """QUERY_REFINEMENT_TEMPLATE_STR should be valid for ChatPromptTemplate."""
         try:
             from langchain_core.prompts import ChatPromptTemplate
+
             template = ChatPromptTemplate.from_template(QUERY_REFINEMENT_TEMPLATE_STR)
             self.assertIsNotNone(template)
         except Exception as e:
@@ -176,6 +181,7 @@ class TestPromptTemplateUsability(unittest.TestCase):
     def test_react_template_input_variables_correct(self):
         """The template should have the expected input variables."""
         from langchain_core.prompts import PromptTemplate
+
         template = PromptTemplate.from_template(
             template=REACT_AGENT_PROMPT_TEMPLATE_STR,
             partial_variables={"tool_instructions": ""},
@@ -194,6 +200,7 @@ class TestPromptTemplateUsability(unittest.TestCase):
     def test_query_refinement_template_input_variables_correct(self):
         """Query refinement template should have ai_response and user_question."""
         from langchain_core.prompts import ChatPromptTemplate
+
         template = ChatPromptTemplate.from_template(QUERY_REFINEMENT_TEMPLATE_STR)
         # Check that it can be formatted with those variables
         try:

@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Speaches container is started during the steps to allow for model caching
-    
+
 
     steps:
       - name: Checkout Code
@@ -34,13 +34,13 @@ jobs:
         run: |
           mkdir -p models
           chmod 777 models
-          
+
           docker run -d --name speaches -p 8000:8000 \
             -e HUGGINGFACE_HUB_CACHE=/models \
             -e HF_HOME=/models \
             -v ${{ github.workspace }}/models:/models \
             ghcr.io/speaches-ai/speaches:0.7.0-cpu
-          
+
           # Wait for the container to become responsive to avoid initial connection errors
           timeout 60 bash -c 'until curl -s http://localhost:8000/v1/models > /dev/null; do sleep 2; done'
 

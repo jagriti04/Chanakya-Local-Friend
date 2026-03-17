@@ -4,10 +4,10 @@ MCP (Model Context Protocol) wrapper for subprocess communication.
 Handles stdin/stdout forwarding to MCP tools. For internal use only.
 """
 
-import sys
-import subprocess
-import threading
 import json
+import subprocess
+import sys
+import threading
 
 
 def forward_stdin(proc):

@@ -25,5 +25,3 @@ List any alternative solutions you’ve thought about.
 ## 📸 Mockups / References
 
 If you have any diagrams, mockups, or references, add them here.
-
-

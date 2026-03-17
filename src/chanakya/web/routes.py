@@ -11,30 +11,32 @@ import datetime
 import os
 import tempfile
 import time
-from flask import jsonify, render_template, request, redirect, url_for
-from .app_setup import app
-from .client_activity import (
-    update_client_activity,
-    remove_inactive_clients,
-    SAVE_INTERVAL,
-    COUNT_FILE,
-    active_clients,
-)
+
+from flask import jsonify, redirect, render_template, request, url_for
+from langchain_core.agents import AgentAction
+from langchain_core.tools import ToolException
+
+from .. import config
 from ..core.memory_management import (
-    retrieve_relevant_memories,
-    list_all_memories,
     add_memory,
     delete_memory,
+    list_all_memories,
+    retrieve_relevant_memories,
 )
 from ..core.query_refinement import get_query_refinement_chain
 from ..core.react_agent import get_chanakya_react_agent_with_history
 from ..services import tool_loader
-from ..utils.utils import get_plain_text_content
-from ..utils import utils as utils_module  # to modify last_ai_response
-from .. import config
 from ..services.audio_service import get_stt, get_tts
-from langchain_core.agents import AgentAction
-from langchain_core.tools import ToolException
+from ..utils import utils as utils_module  # to modify last_ai_response
+from ..utils.utils import get_plain_text_content
+from .app_setup import app
+from .client_activity import (
+    COUNT_FILE,
+    SAVE_INTERVAL,
+    active_clients,
+    remove_inactive_clients,
+    update_client_activity,
+)
 
 
 @app.route("/")
@@ -69,9 +71,7 @@ async def chat():
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    app.logger.info(
-        f"--- ASYNC /CHAT (Loop: {id(loop)}) User: '{request.form['message']}' ---"
-    )
+    app.logger.info(f"--- ASYNC /CHAT (Loop: {id(loop)}) User: '{request.form['message']}' ---")
 
     update_client_activity(request.remote_addr)
     user_message = request.form["message"]
@@ -93,9 +93,7 @@ async def chat():
             )
             refined_keywords = get_plain_text_content(refined_keywords_output)
         else:
-            app.logger.warning(
-                "Query refinement chain is None, skipping query refinement."
-            )
+            app.logger.warning("Query refinement chain is None, skipping query refinement.")
 
         memory_search_query = user_message
         if refined_keywords and refined_keywords.lower() not in ["none", ""]:
@@ -115,18 +113,14 @@ Current date and time: {current_dt_str}"""
         if relevant_memories:
             memories_str = (
                 "\n\nRelevant Memories (use if applicable for context or to avoid repeating work):\n"
-                + "\n".join(
-                    [f"- Date: {dt}, Memory: {mem}" for dt, mem in relevant_memories]
-                )
+                + "\n".join([f"- Date: {dt}, Memory: {mem}" for dt, mem in relevant_memories])
             )
 
         dynamic_intro_and_memories_content = dynamic_intro + memories_str
 
         current_react_agent_with_history = get_chanakya_react_agent_with_history()
 
-        app.logger.info(
-            f"CHAT - Invoking Chanakya ReAct agent (ASYNC) input: '{user_message}'"
-        )
+        app.logger.info(f"CHAT - Invoking Chanakya ReAct agent (ASYNC) input: '{user_message}'")
         response_payload = await asyncio.wait_for(
             current_react_agent_with_history.ainvoke(
                 {
@@ -144,21 +138,12 @@ Current date and time: {current_dt_str}"""
         )
 
         used_tools_in_turn = set()
-        if (
-            "intermediate_steps" in response_payload
-            and response_payload["intermediate_steps"]
-        ):
+        if "intermediate_steps" in response_payload and response_payload["intermediate_steps"]:
             for step in response_payload["intermediate_steps"]:
-                if (
-                    isinstance(step, tuple)
-                    and len(step) > 0
-                    and isinstance(step[0], AgentAction)
-                ):
+                if isinstance(step, tuple) and len(step) > 0 and isinstance(step[0], AgentAction):
                     used_tools_in_turn.add(step[0].tool)
             if used_tools_in_turn:
-                app.logger.info(
-                    f"CHAT - Tools used in this turn: {list(used_tools_in_turn)}"
-                )
+                app.logger.info(f"CHAT - Tools used in this turn: {list(used_tools_in_turn)}")
             else:
                 app.logger.info(
                     "CHAT - No tools were explicitly called in the intermediate steps for this turn."
@@ -180,9 +165,7 @@ Current date and time: {current_dt_str}"""
     except RuntimeError as e:
         if "Event loop is closed" in str(e):
             app.logger.error(f"EVENT LOOP CLOSED ERROR in /chat: {e}", exc_info=True)
-            return jsonify(
-                {"response": "Internal server error: Event loop issue."}
-            ), 500
+            return jsonify({"response": "Internal server error: Event loop issue."}), 500
         else:
             app.logger.error(f"Runtime error in /chat: {e}", exc_info=True)
             return jsonify({"response": f"Sorry, a runtime error occurred: {e}"}), 500
@@ -196,9 +179,7 @@ Current date and time: {current_dt_str}"""
         )
     except Exception as e:
         app.logger.error(f"Error in /chat endpoint: {e}", exc_info=True)
-        return jsonify(
-            {"response": "Sorry, I encountered an error processing your message."}
-        ), 500
+        return jsonify({"response": "Sorry, I encountered an error processing your message."}), 500
 
 
 @app.route("/record", methods=["POST"])
@@ -245,9 +226,7 @@ async def record():
                 )
                 refined_keywords = get_plain_text_content(refined_keywords_output)
             else:
-                app.logger.warning(
-                    "Query refinement chain is None in /record, skipping."
-                )
+                app.logger.warning("Query refinement chain is None in /record, skipping.")
             memory_search_query = transcription
             if refined_keywords and refined_keywords.lower() not in ["none", ""]:
                 memory_search_query += " " + refined_keywords
@@ -265,12 +244,7 @@ Current date and time: {current_dt_str}"""
             if relevant_memories:
                 memories_str = (
                     "\n\nRelevant Memories (use if applicable for context or to avoid repeating work):\n"
-                    + "\n".join(
-                        [
-                            f"- Date: {dt}, Memory: {mem}"
-                            for dt, mem in relevant_memories
-                        ]
-                    )
+                    + "\n".join([f"- Date: {dt}, Memory: {mem}" for dt, mem in relevant_memories])
                 )
             dynamic_intro_and_memories_content = dynamic_intro + memories_str
 
@@ -295,15 +269,10 @@ Current date and time: {current_dt_str}"""
                 f"RECORD - Raw Chanakya ReAct AgentExecutor async response: {response_payload}"
             )
             utils_module.last_ai_response = get_plain_text_content(response_payload)
-            app.logger.info(
-                f"RECORD - Final text response: {utils_module.last_ai_response}"
-            )
+            app.logger.info(f"RECORD - Final text response: {utils_module.last_ai_response}")
 
             used_tools_in_turn = set()
-            if (
-                "intermediate_steps" in response_payload
-                and response_payload["intermediate_steps"]
-            ):
+            if "intermediate_steps" in response_payload and response_payload["intermediate_steps"]:
                 app.logger.info(
                     f"RECORD - Intermediate steps: {response_payload['intermediate_steps']}"
                 )
@@ -329,7 +298,7 @@ Current date and time: {current_dt_str}"""
                     audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
                     bot_speech_audio_data_url = f"data:audio/wav;base64,{audio_base64}"
                 else:
-                    app.logger.error(f"TTS failed in /record")
+                    app.logger.error("TTS failed in /record")
             return jsonify(
                 {
                     "response": utils_module.last_ai_response,
@@ -340,17 +309,11 @@ Current date and time: {current_dt_str}"""
             )
         except RuntimeError as e:
             if "Event loop is closed" in str(e):
-                app.logger.error(
-                    f"EVENT LOOP CLOSED ERROR in /record: {e}", exc_info=True
-                )
-                return jsonify(
-                    {"response": "Internal server error: Event loop issue."}
-                ), 500
+                app.logger.error(f"EVENT LOOP CLOSED ERROR in /record: {e}", exc_info=True)
+                return jsonify({"response": "Internal server error: Event loop issue."}), 500
             else:
                 app.logger.error(f"Runtime error in /record: {e}", exc_info=True)
-                return jsonify(
-                    {"response": f"Sorry, a runtime error occurred: {e}"}
-                ), 500
+                return jsonify({"response": f"Sorry, a runtime error occurred: {e}"}), 500
         except ToolException as e:
             app.logger.warning(f"Tool error in /record: {e}")
             return jsonify(
@@ -382,9 +345,7 @@ def play_response():
                 tts_f.write(tts_audio_bytes)
                 audio_file_path = tts_f.name
             if not audio_file_path or not os.path.exists(audio_file_path):
-                return jsonify(
-                    {"error": "TTS audio file not found or not created."}
-                ), 500
+                return jsonify({"error": "TTS audio file not found or not created."}), 500
             with open(audio_file_path, "rb") as f_audio:
                 audio_bytes = f_audio.read()
             audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")

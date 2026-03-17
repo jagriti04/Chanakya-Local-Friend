@@ -7,6 +7,7 @@ Provides the get_env_clean() helper for parsing .env values with comments/quotes
 
 import os
 import secrets
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -68,15 +69,11 @@ LLM_API_KEY = get_env_clean("LLM_API_KEY")
 # If these are not set in the .env file, they will fall back to the primary model's configuration.
 # If they are set to an empty string, query refinement will be disabled.
 llm_endpoint_small_env = get_env_clean("LLM_ENDPOINT_SMALL")
-LLM_ENDPOINT_SMALL = (
-    llm_endpoint_small_env if llm_endpoint_small_env is not None else LLM_ENDPOINT
-)
+LLM_ENDPOINT_SMALL = llm_endpoint_small_env if llm_endpoint_small_env is not None else LLM_ENDPOINT
 
 # Also fix the small model endpoint if it's using OpenAI/LMStudio
 if LLM_PROVIDER.lower() in ["openai", "lmstudio"] and LLM_ENDPOINT_SMALL:
-    if not LLM_ENDPOINT_SMALL.endswith("/v1") and not LLM_ENDPOINT_SMALL.endswith(
-        "/v1/"
-    ):
+    if not LLM_ENDPOINT_SMALL.endswith("/v1") and not LLM_ENDPOINT_SMALL.endswith("/v1/"):
         LLM_ENDPOINT_SMALL = LLM_ENDPOINT_SMALL.rstrip("/") + "/v1"
 
 llm_model_name_small_env = get_env_clean("LLM_MODEL_NAME_SMALL")
@@ -130,8 +127,6 @@ SCRIPTS_DIR = os.path.join(PROJECT_ROOT, "scripts")
 # Debug: Print resolved config values at startup
 print(f"[CONFIG DEBUG] LLM_PROVIDER='{LLM_PROVIDER}'")
 print(f"[CONFIG DEBUG] LLM_ENDPOINT='{LLM_ENDPOINT}'")
-print(
-    f"[CONFIG DEBUG] LLM_MODEL_NAME='{LLM_MODEL_NAME}' (raw env: '{_raw_model_name}')"
-)
+print(f"[CONFIG DEBUG] LLM_MODEL_NAME='{LLM_MODEL_NAME}' (raw env: '{_raw_model_name}')")
 print(f"[CONFIG DEBUG] LLM_MODEL_NAME_SMALL='{LLM_MODEL_NAME_SMALL}'")
 print(f"[CONFIG DEBUG] LLM_ENDPOINT_SMALL='{LLM_ENDPOINT_SMALL}'")

@@ -4,9 +4,10 @@ Memory management using SQLite for long-term storage.
 Provides functions to create, read, add, and delete memories with timestamps.
 """
 
+import datetime
 import os
 import sqlite3
-import datetime
+
 from .. import config
 from ..web.app_setup import app
 
@@ -21,9 +22,7 @@ def create_table():
             os.makedirs(db_dir)
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS memories (datetime TEXT, memory TEXT)"""
-        )
+        cursor.execute("""CREATE TABLE IF NOT EXISTS memories (datetime TEXT, memory TEXT)""")
         conn.commit()
     except sqlite3.Error as e:
         app.logger.error(f"Database error: {e}")
@@ -43,7 +42,7 @@ def retrieve_relevant_memories(user_message, limit=3):
         conn.close()
         return []
     query = "SELECT datetime, memory FROM memories WHERE " + " OR ".join(
-        [f"memory LIKE ?" for _ in keywords]
+        ["memory LIKE ?" for _ in keywords]
     )
     params = ["%" + keyword + "%" for keyword in keywords]
     try:

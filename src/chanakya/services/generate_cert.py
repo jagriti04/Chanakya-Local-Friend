@@ -4,14 +4,12 @@ SSL certificate generation for HTTPS server.
 Use generate_self_signed_cert() to create development certificates.
 """
 
-import os
-from OpenSSL import crypto
 from pathlib import Path
 
+from OpenSSL import crypto
 
-def generate_self_signed_cert(
-    cert_dir="certs", cert_name="cert.pem", key_name="key.pem"
-):
+
+def generate_self_signed_cert(cert_dir="certs", cert_name="cert.pem", key_name="key.pem"):
     """
     Generates a self-signed certificate and a private key and saves them to the specified directory.
     """
@@ -22,9 +20,7 @@ def generate_self_signed_cert(
     key_path = Path(cert_dir) / key_name
 
     if cert_path.exists() and key_path.exists():
-        print(
-            f"Certificate '{cert_path}' and key '{key_path}' already exist. Skipping generation."
-        )
+        print(f"Certificate '{cert_path}' and key '{key_path}' already exist. Skipping generation.")
         return
 
     # Generate a new private key
@@ -44,16 +40,10 @@ def generate_self_signed_cert(
     # Save the certificate and key to files
     try:
         with open(cert_path, "wt") as cert_file:
-            cert_file.write(
-                crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8")
-            )
+            cert_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8"))
         with open(key_path, "wt") as key_file:
-            key_file.write(
-                crypto.dump_privatekey(crypto.FILETYPE_PEM, key).decode("utf-8")
-            )
-        print(
-            f"Successfully generated certificate to '{cert_path}' and key to '{key_path}'"
-        )
+            key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key).decode("utf-8"))
+        print(f"Successfully generated certificate to '{cert_path}' and key to '{key_path}'")
     except IOError as e:
         print(f"Error writing certificate or key files: {e}")
 

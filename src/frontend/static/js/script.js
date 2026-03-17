@@ -6,8 +6,8 @@ let manualIsRecording = false;
 let isKeywordSpottingActive = false;
 let isQuickWakeWordRecording = false;
 let audioPlaybackUnlocked = false;
-let keywordListenToggleButton; 
-let isExplicitlyListeningForKeywords = false; 
+let keywordListenToggleButton;
+let isExplicitlyListeningForKeywords = false;
 let isQuickCommandActive = false;
 let isCallModeActive = false;
 let botIsPlayingInCall = false;
@@ -155,19 +155,19 @@ function updateStatus(newStatusText) {
         const lowerStatus = newStatusText.toLowerCase().trim();
         let orbStateClass = 'idle'; // Default state
 
-        if (lowerStatus.includes("processing") || 
-            lowerStatus.includes("playing") || 
-            lowerStatus.includes("bot speaking") || 
+        if (lowerStatus.includes("processing") ||
+            lowerStatus.includes("playing") ||
+            lowerStatus.includes("bot speaking") ||
             lowerStatus.includes(WAKE_WORD + " speaking") ||
             lowerStatus.includes("sending audio")) {
             orbStateClass = 'speaking';
         } else if (lowerStatus.includes("listening (pause)") ||
-                lowerStatus.includes("user speaking") || 
-                lowerStatus.includes("speaking...") || 
-                lowerStatus.includes("recording") || 
+                lowerStatus.includes("user speaking") ||
+                lowerStatus.includes("speaking...") ||
+                lowerStatus.includes("recording") ||
                 lowerStatus.includes(WAKE_WORD + " listening for command...")) {
             orbStateClass = 'listening';
-        } else if (lowerStatus.includes("listening for wake word") || 
+        } else if (lowerStatus.includes("listening for wake word") ||
                 lowerStatus.includes("ready") ||
                 lowerStatus.includes("no command heard") ||
                 lowerStatus.includes("mic permission denied") ||
@@ -176,7 +176,7 @@ function updateStatus(newStatusText) {
                 lowerStatus.includes("fetch audio error")) {
             orbStateClass = 'idle';
         }
-        
+
         orb.className = `orb ${orbStateClass}`; // Update the orb's main state class
 
         // --- START: Apply/Remove synchronized particle animation ---
@@ -238,7 +238,7 @@ function applyChatVisibilityPreference() {
     const storedVisibility = localStorage.getItem("isChatVisible");
     isChatVisible = storedVisibility === "true";
     if (isChatVisible) {
-        isChatVisible = false; 
+        isChatVisible = false;
         toggleChatAreaVisibility();
     } else {
         chatAreaWrapper.classList.add("collapsed");
@@ -412,10 +412,10 @@ async function startManualRecording() {
     stopKeywordSpotter();
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        manualIsRecording = true; 
-        if(recordButton) recordButton.textContent = "🛑"; 
+        manualIsRecording = true;
+        if(recordButton) recordButton.textContent = "🛑";
         updateStatus("Recording...");
-        manualAudioChunks = []; 
+        manualAudioChunks = [];
         manualMediaRecorder = new MediaRecorder(stream);
         manualMediaRecorder.ondataavailable = (event) => manualAudioChunks.push(event.data);
         manualMediaRecorder.onstop = async () => {
@@ -441,23 +441,23 @@ async function startManualRecording() {
         };
         manualMediaRecorder.start();
     } catch (e) {
-        alert("Mic error: " + e.message); 
-        manualIsRecording = false; 
-        if(recordButton) recordButton.textContent = "🎤"; 
+        alert("Mic error: " + e.message);
+        manualIsRecording = false;
+        if(recordButton) recordButton.textContent = "🎤";
         updateStatus("Ready");
         startKeywordSpotter();
     }
 }
 function stopManualRecording() {
     if (manualMediaRecorder && manualMediaRecorder.state !== "inactive") {
-        manualMediaRecorder.stop(); 
+        manualMediaRecorder.stop();
         // Stream tracks are stopped in onstop of startManualRecording or here if not already
         if (manualMediaRecorder.stream && manualMediaRecorder.stream.active) {
              manualMediaRecorder.stream.getTracks().forEach(t => t.stop());
         }
     }
-    manualIsRecording = false; 
-    if(recordButton) recordButton.textContent = "🎤"; 
+    manualIsRecording = false;
+    if(recordButton) recordButton.textContent = "🎤";
     updateStatus("Stopping..."); // Will soon become "Ready" via onstop or next keyword spotter start
     startKeywordSpotter();
 }
@@ -541,7 +541,7 @@ if (isCallModeActive) {
 async function handleByeCommandInCall() {
     // ... (ensure all statusIndicator.textContent are updateStatus())
     if (!isCallModeActive) return;
-    appendMessage("Bye", "user"); 
+    appendMessage("Bye", "user");
     updateStatus("Saying goodbye...");
     try {
         const serverResponse = await fetch("/chat", {
@@ -572,9 +572,9 @@ async function handleByeCommandInCall() {
 async function startCall() {
     if (isCallModeActive) return;
     stopKeywordSpotter(); // Stop idle keyword spotter
-    isCallModeActive = true; 
+    isCallModeActive = true;
     isSystemBusy = false; // Ensure system is not marked busy at the start of a call
-    updateCallButtonVisuals(); 
+    updateCallButtonVisuals();
     updateStatus("Call starting...");
     try {
         callAudioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -590,34 +590,34 @@ async function startCall() {
         callMediaRecorder.onstop = async () => {
             if (!isCallModeActive) {
                 console.log("callMediaRecorder.onstop: Call mode is no longer active.");
-                callAudioChunks = []; 
+                callAudioChunks = [];
                 isSystemBusy = false; // Reset busy state
                 return;
             }
             if (callAudioChunks.length === 0) {
                 console.log("callMediaRecorder.onstop: No audio chunks to send.");
                 if (isCallModeActive && !botIsPlayingInCall && !isSystemBusy) {
-                    updateStatus("Listening..."); 
+                    updateStatus("Listening...");
                 }
                 isSystemBusy = false; // Reset busy state
                 return;
             }
 
             isSystemBusy = true; // <<<< SET SYSTEM BUSY HERE
-            stopKeywordSpotter(); 
-            updateStatus("Sending audio..."); 
-            
+            stopKeywordSpotter();
+            updateStatus("Sending audio...");
+
             const audioBlob = new Blob(callAudioChunks, { type: callMediaRecorder.mimeType });
-            callAudioChunks = []; 
-            const formData = new FormData(); 
+            callAudioChunks = [];
+            const formData = new FormData();
             formData.append('audio', audioBlob, 'call_audio_chunk' + (callMediaRecorder.mimeType.includes('webm') ? '.webm' : '.wav'));
-            
+
             let botWillSpeak = false;
             try {
                 const resp = await fetch('/record', { method: 'POST', body: formData });
                 const data = await resp.json();
 
-                if (!isCallModeActive) { 
+                if (!isCallModeActive) {
                     console.log("callMediaRecorder.onstop: Call mode deactivated during server response.");
                     isSystemBusy = false; // Reset
                     return;
@@ -625,7 +625,7 @@ async function startCall() {
 
                 if (data.error) {
                     appendMessage(`Bot Error: ${data.error}`, "bot");
-                    updateStatus("Error processing your speech."); 
+                    updateStatus("Error processing your speech.");
                 } else {
                     if (data.transcription) appendMessage(data.transcription, "user");
                     appendMessage(data.response, "bot", data);
@@ -635,19 +635,19 @@ async function startCall() {
                         await playBotInCall(data.audio_data_url);
                     }
                 }
-            } catch (e) { 
-                if(isCallModeActive) { 
+            } catch (e) {
+                if(isCallModeActive) {
                     appendMessage("Bot Error: Network issue sending audio.", "bot");
-                    console.error("Error fetching /record in callMediaRecorder.onstop:", e); 
+                    console.error("Error fetching /record in callMediaRecorder.onstop:", e);
                 }
             } finally {
-                userSpokeThisTurn = false; 
+                userSpokeThisTurn = false;
                 if (!botWillSpeak) { // If bot is not going to speak immediately from this flow
                     isSystemBusy = false; // <<<< RESET SYSTEM BUSY if bot is not speaking
                 }
                 // Status update for listening is handled by processCallAudio or end of playBotInCall
-                if (isCallModeActive && !botIsPlayingInCall && !isSystemBusy) { 
-                    updateStatus("Listening..."); 
+                if (isCallModeActive && !botIsPlayingInCall && !isSystemBusy) {
+                    updateStatus("Listening...");
                 }
             }
         };
@@ -662,12 +662,12 @@ async function startCall() {
 }
 
 async function stopCall() {
-    if (!isCallModeActive && !keywordSpotter) { 
+    if (!isCallModeActive && !keywordSpotter) {
          if (callAnimFrameId) cancelAnimationFrame(callAnimFrameId);
-         return; 
+         return;
     }
     const wasTrulyActive = isCallModeActive;
-    isCallModeActive = false; 
+    isCallModeActive = false;
     isSystemBusy = false; // <<<< RESET SYSTEM BUSY
     updateStatus("Call ending...");
 
@@ -681,11 +681,11 @@ async function stopCall() {
     callBotAudio = null; botIsPlayingInCall = false;
     if (callMicSourceNode) callMicSourceNode.disconnect();
     if (callStream) callStream.getTracks().forEach(t => t.stop()); callStream = null;
-    
+
     callAudioChunks = []; userIsSpeaking = false; userSpokeThisTurn = false;
-    
+
     updateCallButtonVisuals(); // This might set status to "Ready"
-    
+
     // Only restart keyword spotter if user explicitly had it on
     if (isExplicitlyListeningForKeywords) { // If user wants idle listening
         startKeywordSpotter(); // Start normal idle spotter
@@ -695,14 +695,14 @@ async function stopCall() {
 }
 
 function processCallAudio() {
-    if (!isCallModeActive || !callAnalyserNode) { 
-        callAnimFrameId = null; 
-        return; 
+    if (!isCallModeActive || !callAnalyserNode) {
+        callAnimFrameId = null;
+        return;
     }
 
     // <<<< ADD CHECK FOR isSystemBusy >>>>
-    if (botIsPlayingInCall || isSystemBusy) { 
-        if(isCallModeActive) callAnimFrameId = requestAnimationFrame(processCallAudio); 
+    if (botIsPlayingInCall || isSystemBusy) {
+        if(isCallModeActive) callAnimFrameId = requestAnimationFrame(processCallAudio);
         else callAnimFrameId = null;
         return; // Don't process mic input if bot is playing OR system is busy (e.g., sending audio)
     }
@@ -715,16 +715,16 @@ function processCallAudio() {
     if (avgAmp > SPEECH_LVL_THRESHOLD) {
         if (!userIsSpeaking) {
             userIsSpeaking = true; userSpokeThisTurn = true; updateStatus("Speaking...");
-            if (callMediaRecorder?.state === "inactive") { 
-                callAudioChunks = []; 
-                callMediaRecorder.start(); 
+            if (callMediaRecorder?.state === "inactive") {
+                callAudioChunks = [];
+                callMediaRecorder.start();
             }
         }
         silenceStartTime = 0;
     } else { // Below speech threshold (silence)
         if (userIsSpeaking) { // Was just speaking, now silence starts
-            userIsSpeaking = false; 
-            silenceStartTime = Date.now(); 
+            userIsSpeaking = false;
+            silenceStartTime = Date.now();
             updateStatus("Listening (pause)...");
         }
         if (silenceStartTime > 0 && (Date.now() - silenceStartTime > MIN_SILENCE_MS)) {
@@ -739,11 +739,11 @@ function processCallAudio() {
             // userSpokeThisTurn is reset in onstop's finally block
         }
     }
-    
+
     if(isCallModeActive) {
-        callAnimFrameId = requestAnimationFrame(processCallAudio); 
+        callAnimFrameId = requestAnimationFrame(processCallAudio);
     } else {
-        callAnimFrameId = null; 
+        callAnimFrameId = null;
     }
 }
 
@@ -751,33 +751,33 @@ async function playBotInCall(audioUrl) {
     if (!isCallModeActive) {
         console.log("playBotInCall: Call mode not active, aborting playback.");
         // No promise to return if we abort early, or could return a pre-resolved/rejected one
-        return Promise.resolve({ interrupted: false, error: "Call not active" }); 
+        return Promise.resolve({ interrupted: false, error: "Call not active" });
     }
-    if (!audioUrl) { 
-        if (isCallModeActive) updateStatus("Listening..."); 
-        isSystemBusy = false; 
+    if (!audioUrl) {
+        if (isCallModeActive) updateStatus("Listening...");
+        isSystemBusy = false;
         console.log("playBotInCall: No audio URL provided.");
         return Promise.resolve({ interrupted: false, error: "No audio URL" });
     }
 
     // Return a new promise that resolves/rejects when playback is complete or an error occurs
-    return new Promise(async (resolve, reject) => { 
+    return new Promise(async (resolve, reject) => {
         let promiseFinalized = false; // Local flag for this specific promise instance
 
-        botIsPlayingInCall = true; 
-        isSystemBusy = true; 
+        botIsPlayingInCall = true;
+        isSystemBusy = true;
         updateStatus("Bot speaking...");
-        
+
         stopKeywordSpotter(); // Stop main idle/bye spotter
         let bargeInSpotter = null; // Initialize to null
         let bargeInActive = false;
-        
+
         // Initialize and start barge-in spotter
-        bargeInSpotter = initializeKeywordSpotter(); 
+        bargeInSpotter = initializeKeywordSpotter();
         if (bargeInSpotter) {
             try {
                 // Barge-in specific onresult: only concerned with "stop"
-                bargeInSpotter.onresult = (event) => { 
+                bargeInSpotter.onresult = (event) => {
                     let transcript = "";
                     for (let i = event.resultIndex; i < event.results.length; ++i) {
                         transcript += event.results[i][0].transcript;
@@ -791,72 +791,72 @@ async function playBotInCall(audioUrl) {
                 };
                 // Simplified event handlers for barge-in spotter
                 bargeInSpotter.onstart = () => { bargeInActive = true; console.log("Barge-in spotter started.");};
-                bargeInSpotter.onend = () => { bargeInActive = false; console.log("Barge-in spotter ended."); }; 
+                bargeInSpotter.onend = () => { bargeInActive = false; console.log("Barge-in spotter ended."); };
                 bargeInSpotter.onerror = (e) => { console.error("Barge-in spotter error:", e); bargeInActive = false; };
-                
+
                 if(!isKeywordSpottingActive && !bargeInActive) { // Avoid starting if main spotter is somehow active or this one is
                    bargeInSpotter.start();
                 } else {
                     console.warn("Could not start barge-in spotter, another spotter might be active or it failed previously.");
-                    bargeInSpotter = null; 
+                    bargeInSpotter = null;
                 }
-            } catch (e) { 
-                console.error("Could not start barge-in spotter:", e); 
-                bargeInSpotter = null; 
+            } catch (e) {
+                console.error("Could not start barge-in spotter:", e);
+                bargeInSpotter = null;
             }
         }
 
         // Cleanup previous bot audio if any (safer to always create a new Audio object)
-        if (callBotAudio) { 
-            callBotAudio.pause(); 
-            callBotAudio.removeAttribute('src'); 
+        if (callBotAudio) {
+            callBotAudio.pause();
+            callBotAudio.removeAttribute('src');
             // Remove any lingering event listeners from the *previous* callBotAudio instance
             // This requires storing references to handlers if they are not anonymous.
             // For simplicity, we rely on creating a new Audio object which won't have old listeners.
-            callBotAudio.load(); 
+            callBotAudio.load();
         }
         callBotAudio = new Audio(audioUrl); // Create new Audio object for this playback
-        
+
         // --- Define cleanup and promise finalization logic ---
         const cleanupAndFinalize = (interrupted = false, error = null) => {
             if (promiseFinalized) return; // Execute only once
             promiseFinalized = true;
 
             botIsPlayingInCall = false;
-            isSystemBusy = false; 
+            isSystemBusy = false;
 
             // Stop and nullify the barge-in spotter for this playback instance
             if (bargeInSpotter && bargeInActive) {
                 try { bargeInSpotter.stop(); } catch(e) { console.warn("Error stopping barge-in spotter", e); }
             }
-            bargeInSpotter = null; 
+            bargeInSpotter = null;
             bargeInActive = false;
 
             // Remove event listeners from the current callBotAudio instance
             callBotAudio.removeEventListener('ended', endedHandler);
             callBotAudio.removeEventListener('error', errorHandler);
-            callBotAudio.removeEventListener('pause', pauseHandler); 
+            callBotAudio.removeEventListener('pause', pauseHandler);
 
-            if (isCallModeActive) { 
+            if (isCallModeActive) {
                 if (interrupted) {
-                    updateStatus("Interrupted. Listening..."); 
-                    userIsSpeaking = false; 
+                    updateStatus("Interrupted. Listening...");
+                    userIsSpeaking = false;
                     userSpokeThisTurn = false;
                     silenceStartTime = 0;
                 } else if (!error) { // Finished normally, not interrupted, no error
-                    updateStatus("Listening..."); 
+                    updateStatus("Listening...");
                 } else { // An error occurred during playback
                     updateStatus("Bot audio error. Listening...");
                 }
                 // Conditionally restart the main keyword spotter for "bye" detection
-                if (isExplicitlyListeningForKeywords && !isKeywordSpottingActive) { 
+                if (isExplicitlyListeningForKeywords && !isKeywordSpottingActive) {
                     console.log("Bot playback finished/interrupted in call. Attempting to start 'bye' spotter.");
-                    startKeywordSpotter({ forInCallByeDetection: true }); 
+                    startKeywordSpotter({ forInCallByeDetection: true });
                 }
             } else { // Call ended during or just after bot speech
                 if (isExplicitlyListeningForKeywords && !isKeywordSpottingActive) {
                     startKeywordSpotter(); // Start normal idle spotter
-                } else if (!isKeywordSpottingActive) { 
+                } else if (!isKeywordSpottingActive) {
                     updateStatus("Ready.");
                     if (keywordListenToggleButton) keywordListenToggleButton.textContent = "👂";
                 }
@@ -874,29 +874,29 @@ async function playBotInCall(audioUrl) {
             console.log("Bot audio ended normally.");
             cleanupAndFinalize(false);
         };
-        const errorHandler = (e) => { 
-            console.error("Bot audio playback error event:", e); 
+        const errorHandler = (e) => {
+            console.error("Bot audio playback error event:", e);
             cleanupAndFinalize(false, e); // Pass error
         };
-        const pauseHandler = () => { 
+        const pauseHandler = () => {
             // This handler is primarily for barge-in. If audio is paused for other reasons,
             // it might lead to unintended "interruption" state if not handled carefully.
             // We assume pause here is due to barge-in stopping the audio.
             console.log("Bot audio paused (assumed barge-in or explicit stop).");
             cleanupAndFinalize(true); // Mark as interrupted
         };
-        
+
         callBotAudio.addEventListener('ended', endedHandler);
         callBotAudio.addEventListener('error', errorHandler);
         callBotAudio.addEventListener('pause', pauseHandler);
-        
+
         try {
             await callBotAudio.play();
         } catch (playException) {
             // If .play() itself throws an error (e.g., user hasn't interacted yet)
             console.error("Error on callBotAudio.play():", playException);
             // Call errorHandler to ensure cleanup and promise rejection
-            errorHandler(playException); 
+            errorHandler(playException);
         }
     });
 }
@@ -909,8 +909,8 @@ function initializeKeywordSpotter() {
         return null;
     }
     const recognition = new SpeechRecognition();
-    recognition.continuous = true;      
-    recognition.interimResults = true;  
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
@@ -923,7 +923,7 @@ function initializeKeywordSpotter() {
 
         if (isForInCallBye) {
              updateStatus("Listening... (for speech or 'bye')");
-        } else if (isForIdleWakeWord) { 
+        } else if (isForIdleWakeWord) {
             updateStatus("Listening for wake word...");
             if (keywordListenToggleButton) keywordListenToggleButton.textContent = "🙉";
         } else {
@@ -934,7 +934,7 @@ function initializeKeywordSpotter() {
     };
 
     recognition.onresult = (event) => {
-        let finalTranscript = ''; 
+        let finalTranscript = '';
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
@@ -951,8 +951,8 @@ function initializeKeywordSpotter() {
         console.log(`KeywordSpotter sees: "${currentFullTranscript}", Final: ${lastResultIsFinal}`);
 
         // Barge-in logic during bot speech (highest priority if bot is speaking)
-        if (isCallModeActive && botIsPlayingInCall) { 
-            if (currentFullTranscript.includes("stop")) { 
+        if (isCallModeActive && botIsPlayingInCall) {
+            if (currentFullTranscript.includes("stop")) {
                 console.log("Keyword: 'stop' (barge-in) detected during bot playback!");
                 // handleBargeInInterrupt(); // This function should pause bot audio and update states
                 if (callBotAudio && !callBotAudio.paused) {
@@ -967,7 +967,7 @@ function initializeKeywordSpotter() {
             // Make sure this specific spotter instance is the one intended for 'bye'
             // (This check is implicit if only one 'keywordSpotter' global is used and started correctly)
             const byeAlone = (
-                lastResultIsFinal && 
+                lastResultIsFinal &&
                 (currentFullTranscript === "bye" || currentFullTranscript === "buy" || currentFullTranscript === "by" ||
                  currentFullTranscript === "bye." || currentFullTranscript === "buy." || currentFullTranscript === "by.")
             );
@@ -975,17 +975,17 @@ function initializeKeywordSpotter() {
                               currentFullTranscript.includes("goodbye " + WAKE_WORD) ||
                               currentFullTranscript.includes("bye, " + WAKE_WORD) ||
                               currentFullTranscript.includes("goodbye, " + WAKE_WORD) ||
-                              currentFullTranscript.includes("okay bye") || 
-                              currentFullTranscript.includes("ok, bye") || 
+                              currentFullTranscript.includes("okay bye") ||
+                              currentFullTranscript.includes("ok, bye") ||
                               currentFullTranscript.includes("bye bye") ||
                               currentFullTranscript.includes("ok by") ||
-                              currentFullTranscript.includes("good by"); 
+                              currentFullTranscript.includes("good by");
 
             if (byePhrase || byeAlone) {
                 console.log(`"Bye" detected during call! byePhrase: ${byePhrase}, byeAlone: ${byeAlone}. Transcript: "${currentFullTranscript}"`);
                 // Stop this keyword spotter first before further actions
-                stopKeywordSpotter(); 
-                
+                stopKeywordSpotter();
+
                 // Stop VAD loop and current user recording in call mode immediately
                 if (callAnimFrameId) cancelAnimationFrame(callAnimFrameId); callAnimFrameId = null;
                 if (callMediaRecorder && callMediaRecorder.state === "recording") {
@@ -998,29 +998,29 @@ function initializeKeywordSpotter() {
                 handleByeCommandInCall(); // This sends "Bye" to server and then calls stopCall()
                 return; // Bye processed, no further processing for this result
             }
-        } 
-        
+        }
+
         // Idle mode keyword detection (wake words, chanakya alone)
         if (!isCallModeActive && !manualIsRecording && !isQuickWakeWordRecording && !isQuickCommandActive) {
             if (currentFullTranscript.includes("hey " + WAKE_WORD) || currentFullTranscript.includes("hi " + WAKE_WORD) || currentFullTranscript.includes("hey, " + WAKE_WORD) || currentFullTranscript.includes("hi, " + WAKE_WORD)) {
                 console.log("Keyword: 'Hey/Hi " + WAKE_WORD + "' detected. Triggering call mode.");
-                stopKeywordSpotter(); 
+                stopKeywordSpotter();
                 toggleCallMode(); // This function will handle further state changes
             } else {
                 let normalizedTranscript = currentFullTranscript; // Already toLowerCase and trimmed
                 if (normalizedTranscript.endsWith('.')) {
                     normalizedTranscript = normalizedTranscript.substring(0, normalizedTranscript.length - 1);
                 }
-                const chanakyaAloneAsKeyword = 
-                    lastResultIsFinal && 
+                const chanakyaAloneAsKeyword =
+                    lastResultIsFinal &&
                     (normalizedTranscript === WAKE_WORD || normalizedTranscript.startsWith(WAKE_WORD + " ")) &&
                     !(currentFullTranscript.includes("hey " + WAKE_WORD) || currentFullTranscript.includes("hi " + WAKE_WORD));
-                                        
+
                 if (chanakyaAloneAsKeyword) {
                      console.log("Keyword: '" + WAKE_WORD + "' (alone, final, normalized) detected. Triggering short record.");
-                     stopKeywordSpotter(); 
+                     stopKeywordSpotter();
                      triggerQuickWakeWordRecording();
-                } else if (!lastResultIsFinal && 
+                } else if (!lastResultIsFinal &&
                            currentFullTranscript.includes(WAKE_WORD) &&
                            !(currentFullTranscript.includes("hey " + WAKE_WORD) || currentFullTranscript.includes("hi " + WAKE_WORD))) {
                     updateStatus(WAKE_WORD + " heard...");
@@ -1032,7 +1032,7 @@ function initializeKeywordSpotter() {
     recognition.onerror = (event) => {
         console.error("KeywordSpotter error event:", event.error);
         const wasIntendedToBeActive = isKeywordSpottingActive || (isExplicitlyListeningForKeywords && !isCallModeActive && !manualIsRecording /*...other modes...*/);
-        
+
         isKeywordSpottingActive = false; // Recognition definitely stopped or failed to start
 
         if (event.error === 'no-speech' || event.error === 'audio-capture') {
@@ -1052,7 +1052,7 @@ function initializeKeywordSpotter() {
         } else if (event.error === 'not-allowed') {
             alert("Microphone permission denied. Keyword spotting disabled.");
             updateStatus("Mic permission denied.");
-            isExplicitlyListeningForKeywords = false; 
+            isExplicitlyListeningForKeywords = false;
             if(keywordListenToggleButton) keywordListenToggleButton.textContent = "👂";
         } else {
             updateStatus("Keyword spotter error: " + event.error);
@@ -1065,8 +1065,8 @@ function initializeKeywordSpotter() {
 
     recognition.onend = () => {
         console.log("Keyword Spotter: Event 'onend' - Recognition actually ended.");
-        const wasOurLogicExpectingItToBeActive = isKeywordSpottingActive; 
-        isKeywordSpottingActive = false; 
+        const wasOurLogicExpectingItToBeActive = isKeywordSpottingActive;
+        isKeywordSpottingActive = false;
 
         const shouldBeIdleSpotting = isExplicitlyListeningForKeywords && !isCallModeActive && !manualIsRecording && !isQuickWakeWordRecording && !isQuickCommandActive && !isSystemBusy;
         const shouldBeInCallByeSpotting = isExplicitlyListeningForKeywords && isCallModeActive && !botIsPlayingInCall && !isSystemBusy;
@@ -1082,7 +1082,7 @@ function initializeKeywordSpotter() {
             }, 250);
         } else {
             console.log("KeywordSpotter service ended. Not restarting (was deliberately stopped or conditions not met).");
-            if (keywordListenToggleButton && !isCallModeActive) { 
+            if (keywordListenToggleButton && !isCallModeActive) {
                 if (isExplicitlyListeningForKeywords) {
                     // This means it ended but user still wants it on - restart logic above should catch.
                     // If not, button might be out of sync.
@@ -1103,11 +1103,11 @@ function startKeywordSpotter(options = {}) {
 
     if (isKeywordSpottingActive) { // Check our flag: if we think it's active, don't try to start again.
         console.log(`Keyword spotter already considered active (isKeywordSpottingActive=true). Purpose: ${forInCallByeDetection ? 'in-call bye' : 'idle'}. Not starting again.`);
-        return false; 
+        return false;
     }
 
     // Apply other guards based on purpose
-    if (!forInCallByeDetection) { 
+    if (!forInCallByeDetection) {
         if (isCallModeActive || manualIsRecording || isQuickCommandActive || isQuickWakeWordRecording) {
             console.log("Cannot start idle keyword spotter: conflicting mode active.");
             return false;
@@ -1121,7 +1121,7 @@ function startKeywordSpotter(options = {}) {
 
     if (!keywordSpotter) {
         console.log("Keyword spotter not initialized, initializing now...");
-        keywordSpotter = initializeKeywordSpotter(); 
+        keywordSpotter = initializeKeywordSpotter();
         if (!keywordSpotter) { // Check if initialization failed
             updateStatus("Failed to initialize keyword spotter.");
             return false;
@@ -1131,7 +1131,7 @@ function startKeywordSpotter(options = {}) {
     // At this point, keywordSpotter exists and isKeywordSpottingActive is false.
     try {
         console.log(`Attempting to start keyword spotter (Purpose: ${forInCallByeDetection ? 'in-call bye' : 'idle'})...`);
-        keywordSpotter.start(); 
+        keywordSpotter.start();
         // DO NOT set isKeywordSpottingActive = true here. It's set in recognition.onstart.
         // The UI updates (button text, status) should also ideally happen in onstart.
         // For now, we can optimistically update some UI if needed by the caller.
@@ -1142,14 +1142,14 @@ function startKeywordSpotter(options = {}) {
             // if (keywordListenToggleButton) keywordListenToggleButton.textContent = "Stop Keyword Listening";
         }
         return true; // Indicate start request was made
-    } catch (e) { 
+    } catch (e) {
         console.error(`Error calling keywordSpotter.start() (Purpose: ${forInCallByeDetection ? 'in-call bye' : 'idle'}):`, e);
         isKeywordSpottingActive = false; // Ensure flag is reset on immediate error
         updateStatus("Error starting keyword listener.");
         if (!forInCallByeDetection && keywordListenToggleButton) {
             keywordListenToggleButton.textContent = "👂";
         }
-        return false; 
+        return false;
     }
 }
 
@@ -1188,17 +1188,17 @@ function stopKeywordSpotter() {
 // handleToggleKeywordListening (from previous response) should correctly call these
 async function handleToggleKeywordListening() {
     console.log("handleToggleKeywordListening called. Current isExplicitlyListeningForKeywords:", isExplicitlyListeningForKeywords);
-    
+
     if (!audioPlaybackUnlocked) {
         const unlocked = await unlockAudioPlayback();
         if (!unlocked) {
             updateStatus("Audio unlock failed. Cannot change listening state.");
-            return; 
+            return;
         }
     }
-    
+
     if (isExplicitlyListeningForKeywords) { // If user intended it to be ON, now turn it OFF
-        isExplicitlyListeningForKeywords = false; 
+        isExplicitlyListeningForKeywords = false;
         stopKeywordSpotter(); // This will update button and status via onend or directly
         // updateStatus("Keyword listening OFF by user."); // More specific status
     } else { // If user intended it to be OFF (or it's the first time), now turn it ON
@@ -1208,7 +1208,7 @@ async function handleToggleKeywordListening() {
             // and onstart fires to set isKeywordSpottingActive
             // For now, we can assume if startKeywordSpotter doesn't immediately fail (returns true),
             // the intent is set. The actual state is isKeywordSpottingActive.
-            isExplicitlyListeningForKeywords = true; 
+            isExplicitlyListeningForKeywords = true;
             // Button text and status are updated by startKeywordSpotter via onstart
         } else {
             console.log("handleToggleKeywordListening: Idle startKeywordSpotter failed to initiate.");
@@ -1236,8 +1236,8 @@ async function triggerQuickWakeWordRecording() {
             stream.getTracks().forEach(track => track.stop());
             if (quickWakeWordAudioChunks.length === 0) {
                 appendMessage("You (Audio to " + WAKE_WORD + "): (No speech detected)", "user");
-                updateStatus("No command heard."); 
-                isQuickCommandActive = false; 
+                updateStatus("No command heard.");
+                isQuickCommandActive = false;
                 if (!isCallModeActive && !manualIsRecording && isExplicitlyListeningForKeywords) startKeywordSpotter();
                 else if (!isCallModeActive && !manualIsRecording) updateStatus("Ready.");
                 return;
@@ -1258,20 +1258,20 @@ async function triggerQuickWakeWordRecording() {
                         updateStatus(WAKE_WORD + " speaking...");
                         try {
                             await commandResponseAudio.play();
-                            commandResponseAudio.onended = () => { 
-                                updateStatus("Listening for wake word..."); 
-                                isQuickCommandActive = false; 
-                                if (!isCallModeActive && !manualIsRecording && isExplicitlyListeningForKeywords) startKeywordSpotter(); 
+                            commandResponseAudio.onended = () => {
+                                updateStatus("Listening for wake word...");
+                                isQuickCommandActive = false;
+                                if (!isCallModeActive && !manualIsRecording && isExplicitlyListeningForKeywords) startKeywordSpotter();
                                 else if (!isCallModeActive && !manualIsRecording) updateStatus("Ready.");
                             };
                             commandResponseAudio.onerror = (e) => { console.error(e); updateStatus(WAKE_WORD + " audio error."); isQuickCommandActive = false; if (!isCallModeActive && !manualIsRecording) startKeywordSpotter(); };
                         } catch (playError) {
                              console.error("Quick command play error:", playError); updateStatus("Audio play blocked."); isQuickCommandActive = false; if (!isCallModeActive && !manualIsRecording) startKeywordSpotter();
                         }
-                    } else { 
+                    } else {
                         updateStatus(WAKE_WORD + " processed (no speech).");
-                        isQuickCommandActive = false; 
-                        if (!isCallModeActive && !manualIsRecording && isExplicitlyListeningForKeywords) startKeywordSpotter(); 
+                        isQuickCommandActive = false;
+                        if (!isCallModeActive && !manualIsRecording && isExplicitlyListeningForKeywords) startKeywordSpotter();
                         else if (!isCallModeActive && !manualIsRecording) updateStatus("Ready.");
                     }
                 }
@@ -1316,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', () => {
     playResponseButton = document.getElementById("playResponseButton");
     darkModeButton = document.getElementById("darkModeButton");
     callModeButton = document.getElementById("callModeButton");
-    statusIndicator = document.getElementById("statusIndicator"); 
+    statusIndicator = document.getElementById("statusIndicator");
     toggleChatButton = document.getElementById("toggleChatButton");
     chatAreaWrapper = document.getElementById("chatAreaWrapper");
     animationArea = document.getElementById("animationArea");
@@ -1326,11 +1326,11 @@ document.addEventListener('DOMContentLoaded', () => {
     keywordListenToggleButton = document.getElementById('keywordListenToggleButton'); // Assign new button
 
     // Initial UI setup
-    applyDarkModePreference(); 
-    applyChatVisibilityPreference(); 
+    applyDarkModePreference();
+    applyChatVisibilityPreference();
 
-    if (orb && orbCore) { 
-        if (!isChatVisible) initializeParticles(); 
+    if (orb && orbCore) {
+        if (!isChatVisible) initializeParticles();
     } else {
         console.error("Orb elements not found!");
     }
@@ -1360,14 +1360,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainButtons = [sendButton, recordButton, playResponseButton, callModeButton, toggleChatButton, darkModeButton]; // Redefine if not global
         mainButtons.forEach(btn => { if(btn) btn.removeEventListener('click', generalUnlockHandler);});
         if(messageInput) messageInput.removeEventListener('keydown', generalUnlockHandler);
-        if(document.body) document.body.removeEventListener('click', generalUnlockHandler); 
+        if(document.body) document.body.removeEventListener('click', generalUnlockHandler);
     };
 
     if (!audioPlaybackUnlocked) {
         console.log("Setting up general audio unlock event listeners (not for autostarting keyword spotter).");
         const mainButtons = [sendButton, recordButton, playResponseButton, callModeButton, toggleChatButton, darkModeButton]; // Redefine if not global
-        mainButtons.forEach(btn => { 
-            if (btn && btn !== keywordListenToggleButton) btn.addEventListener('click', generalUnlockHandler, { once: true }); 
+        mainButtons.forEach(btn => {
+            if (btn && btn !== keywordListenToggleButton) btn.addEventListener('click', generalUnlockHandler, { once: true });
         });
         if (messageInput) {
             messageInput.addEventListener('keydown', generalUnlockHandler, { once: true });

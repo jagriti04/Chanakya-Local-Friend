@@ -5,12 +5,11 @@ Focus: load_mcp_config_internal() function.
 Tests file existence checks, JSON parsing, mcpServers extraction, and error handling.
 """
 
+import json
 import os
 import sys
-import json
 import tempfile
 import unittest
-from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, "/home/jailuser/git")
 
@@ -32,6 +31,7 @@ def get_load_mcp_config_internal():
             del sys.modules[key]
 
     from src.chanakya.services.config_loader import load_mcp_config_internal
+
     return load_mcp_config_internal
 
 
@@ -58,6 +58,7 @@ class TestLoadMcpConfigStandalone(unittest.TestCase):
 
     def tearDown(self):
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _write_config(self, data: dict, filename: str = "mcp_config.json") -> str:
@@ -184,6 +185,7 @@ class TestLoadMcpConfigFromModule(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         import shutil
+
         if _MODULE_TEMP_DIR:
             shutil.rmtree(_MODULE_TEMP_DIR, ignore_errors=True)
 
@@ -230,6 +232,7 @@ class TestLoadMcpConfigFromModule(unittest.TestCase):
             if "chanakya" in key:
                 del sys.modules[key]
         from src.chanakya.services.config_loader import MCP_CONFIG_FILENAME
+
         self.assertIsInstance(MCP_CONFIG_FILENAME, str)
         self.assertIn("mcp_config_file.json", MCP_CONFIG_FILENAME)
 

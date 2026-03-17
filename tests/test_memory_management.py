@@ -6,11 +6,11 @@ touching any real database.
 """
 
 import os
-import sys
 import sqlite3
+import sys
 import tempfile
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, "/home/jailuser/git")
 
@@ -20,26 +20,26 @@ def make_memory_management_module(db_path):
     Return the memory_management functions bound to a specific db_path,
     without importing the real module (which pulls in Flask app and config).
     """
-    import importlib
 
     # Patch config.DATABASE_PATH and the app import before loading
     mock_config = MagicMock()
     mock_config.DATABASE_PATH = db_path
 
-    mock_app = MagicMock()
-
-    with patch.dict(sys.modules, {
-        "src.chanakya.config": mock_config,
-        "src.chanakya": MagicMock(config=mock_config),
-    }):
+    with patch.dict(
+        sys.modules,
+        {
+            "src.chanakya.config": mock_config,
+            "src.chanakya": MagicMock(config=mock_config),
+        },
+    ):
         # We directly test the functions by calling them with the patched globals
         pass
 
     # Instead of monkey-patching at import, we test functions directly
     # by reimplementing the data layer with the temp db path
+    import datetime
     import os
     import sqlite3
-    import datetime
 
     def create_table():
         db_dir = os.path.dirname(db_path)
@@ -47,9 +47,7 @@ def make_memory_management_module(db_path):
             os.makedirs(db_dir)
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS memories (datetime TEXT, memory TEXT)"""
-        )
+        cursor.execute("""CREATE TABLE IF NOT EXISTS memories (datetime TEXT, memory TEXT)""")
         conn.commit()
         conn.close()
 
@@ -63,7 +61,7 @@ def make_memory_management_module(db_path):
             conn.close()
             return []
         query = "SELECT datetime, memory FROM memories WHERE " + " OR ".join(
-            [f"memory LIKE ?" for _ in keywords]
+            ["memory LIKE ?" for _ in keywords]
         )
         params = ["%" + keyword + "%" for keyword in keywords]
         try:
@@ -132,9 +130,7 @@ class TestMemoryManagementCRUD(unittest.TestCase):
         """Table should exist after create_table is called."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='memories'"
-        )
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='memories'")
         result = cursor.fetchone()
         conn.close()
         self.assertIsNotNone(result)
@@ -328,12 +324,13 @@ class TestMemoryManagementDirectImport(unittest.TestCase):
                 del sys.modules[key]
 
         from src.chanakya.core.memory_management import (
-            create_table,
             add_memory,
-            list_all_memories,
+            create_table,
             delete_memory,
+            list_all_memories,
             retrieve_relevant_memories,
         )
+
         cls.create_table = staticmethod(create_table)
         cls.add_memory = staticmethod(add_memory)
         cls.list_all_memories = staticmethod(list_all_memories)

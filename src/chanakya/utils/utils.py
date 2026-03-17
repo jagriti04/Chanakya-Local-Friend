@@ -5,6 +5,7 @@ Provides get_plain_text_content() to extract clean text from various response ty
 """
 
 import re
+
 from langchain_core.messages import BaseMessage
 
 last_ai_response = ""
@@ -15,9 +16,7 @@ def get_plain_text_content(response_object):
     raw_text = ""
     if isinstance(response_object, dict) and "output" in response_object:
         raw_text = str(response_object["output"]).strip()
-    elif isinstance(response_object, BaseMessage) and hasattr(
-        response_object, "content"
-    ):
+    elif isinstance(response_object, BaseMessage) and hasattr(response_object, "content"):
         raw_text = str(response_object.content).strip()
     elif isinstance(response_object, str):
         raw_text = response_object.strip()

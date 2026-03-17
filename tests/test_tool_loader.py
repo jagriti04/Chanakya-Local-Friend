@@ -6,18 +6,16 @@ and the caching behavior. These tests mock out the MCP client to test the tool
 loader logic without requiring actual MCP server connections.
 """
 
+import asyncio
 import os
 import sys
-import asyncio
 import unittest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, "/home/jailuser/git")
 
 
-def build_server_config_from_details(
-    details: dict, os_environ: dict | None = None
-) -> dict:
+def build_server_config_from_details(details: dict, os_environ: dict | None = None) -> dict:
     """
     Replicate the server config building + env injection logic from tool_loader.py.
     This tests the logic in isolation without importing the module.
@@ -202,9 +200,7 @@ class TestToolLoaderCachingLogic(unittest.TestCase):
             tool_loader.CACHED_MCP_TOOLS = []
             tool_loader.MCP_TOOLS_LOADED_FLAG = False
 
-            with patch(
-                "src.chanakya.services.tool_loader.load_mcp_config_internal"
-            ) as mock_load:
+            with patch("src.chanakya.services.tool_loader.load_mcp_config_internal") as mock_load:
                 mock_load.return_value = {}  # Empty config
 
                 result = asyncio.new_event_loop().run_until_complete(
@@ -243,9 +239,7 @@ class TestToolLoaderCachingLogic(unittest.TestCase):
             tool_loader.CACHED_MCP_TOOLS = [mock_tool]
             tool_loader.MCP_TOOLS_LOADED_FLAG = True
 
-            with patch(
-                "src.chanakya.services.tool_loader.load_mcp_config_internal"
-            ) as mock_load:
+            with patch("src.chanakya.services.tool_loader.load_mcp_config_internal") as mock_load:
                 result = asyncio.new_event_loop().run_until_complete(
                     tool_loader.load_all_mcp_tools_async()
                 )
@@ -276,9 +270,7 @@ class TestToolLoaderCachingLogic(unittest.TestCase):
             tool_loader.CACHED_MCP_TOOLS = [mock_tool]
             tool_loader.MCP_TOOLS_LOADED_FLAG = True
 
-            with patch(
-                "src.chanakya.services.tool_loader.load_mcp_config_internal"
-            ) as mock_load:
+            with patch("src.chanakya.services.tool_loader.load_mcp_config_internal") as mock_load:
                 mock_load.return_value = {}  # Empty config
 
                 result = asyncio.new_event_loop().run_until_complete(
@@ -325,11 +317,10 @@ class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
                 "BRAVE_API_KEY": "real-brave-key-from-env",
             },
         ):
-            from src.chanakya.services import tool_loader
-
             # Patch 'os' into the module's namespace to fix the missing import
-            import importlib
             import os as _os
+
+            from src.chanakya.services import tool_loader
 
             tool_loader_module = sys.modules["src.chanakya.services.tool_loader"]
             setattr(tool_loader_module, "os", _os)
@@ -356,9 +347,7 @@ class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
                     return []
 
             with (
-                patch(
-                    "src.chanakya.services.tool_loader.load_mcp_config_internal"
-                ) as mock_load,
+                patch("src.chanakya.services.tool_loader.load_mcp_config_internal") as mock_load,
                 patch(
                     "src.chanakya.services.tool_loader.MultiServerMCPClient",
                     MockMCPClient,

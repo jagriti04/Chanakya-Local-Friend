@@ -6,9 +6,7 @@ plain text from various input types.
 """
 
 import sys
-import os
 import unittest
-from unittest.mock import MagicMock
 
 sys.path.insert(0, "/home/jailuser/git")
 
@@ -94,9 +92,7 @@ class TestGetPlainTextContentToolCallRemoval(unittest.TestCase):
         self.assertEqual(result, "Before text")
 
     def test_removes_tool_call_multiline(self):
-        result = get_plain_text_content(
-            "Prefix\n<tool_call>\n{\"tool\": \"search\"}\n"
-        )
+        result = get_plain_text_content('Prefix\n<tool_call>\n{"tool": "search"}\n')
         self.assertEqual(result, "Prefix")
 
 
@@ -138,15 +134,15 @@ class TestGetPlainTextContentEmojiRemoval(unittest.TestCase):
     """Tests for emoji removal."""
 
     def test_removes_emoji(self):
-        result = get_plain_text_content("Hello \U0001F600 World")
-        self.assertNotIn("\U0001F600", result)
+        result = get_plain_text_content("Hello \U0001f600 World")
+        self.assertNotIn("\U0001f600", result)
         self.assertIn("Hello", result)
         self.assertIn("World", result)
 
     def test_removes_multiple_emojis(self):
-        result = get_plain_text_content("\U0001F680 Rocket \U0001F44D Thumbs up")
-        self.assertNotIn("\U0001F680", result)
-        self.assertNotIn("\U0001F44D", result)
+        result = get_plain_text_content("\U0001f680 Rocket \U0001f44d Thumbs up")
+        self.assertNotIn("\U0001f680", result)
+        self.assertNotIn("\U0001f44d", result)
 
     def test_no_emoji_unchanged(self):
         result = get_plain_text_content("No emojis here")
@@ -178,12 +174,14 @@ class TestGetPlainTextContentBaseMessageInput(unittest.TestCase):
 
     def test_extracts_content_from_base_message(self):
         from langchain_core.messages import AIMessage
+
         msg = AIMessage(content="AI response text")
         result = get_plain_text_content(msg)
         self.assertEqual(result, "AI response text")
 
     def test_extracts_content_with_think_tags(self):
         from langchain_core.messages import AIMessage
+
         msg = AIMessage(content="<think>thinking</think>answer")
         result = get_plain_text_content(msg)
         self.assertEqual(result, "answer")

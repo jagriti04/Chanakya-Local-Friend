@@ -15,3 +15,5 @@ pyOpenSSL
 pytest
 pytest-asyncio
 pytest-flask
+ruff
+pre-commit

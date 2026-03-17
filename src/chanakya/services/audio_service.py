@@ -6,7 +6,6 @@ Use get_tts() / get_stt() to obtain the singleton instances.
 """
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from typing import Optional
 

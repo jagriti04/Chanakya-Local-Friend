@@ -5,8 +5,8 @@ Provides add_memory(), list_all_memories(), delete_memory(), etc.
 Note: This is separate from core/memory_management.py; consider consolidating.
 """
 
-import sqlite3
 import datetime
+import sqlite3
 
 DATABASE = "database/long_term_memory.db"
 
@@ -30,9 +30,7 @@ def delete_memory(memory_id):
     """Delete a memory by its rowid."""
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute(
-        "DELETE FROM memories WHERE rowid = ?", (memory_id,)
-    )  # Use rowid for deletion
+    cursor.execute("DELETE FROM memories WHERE rowid = ?", (memory_id,))  # Use rowid for deletion
     conn.commit()
     conn.close()
     print(f"Memory with ID {memory_id} deleted.")
@@ -51,17 +49,15 @@ def list_memories():
         return
 
     print("Memories:")
-    for rowid, datetime, memory in memories:
-        print(f"ID: {rowid}, Date: {datetime}, Memory: {memory}")
+    for rowid, dt, memory in memories:
+        print(f"ID: {rowid}, Date: {dt}, Memory: {memory}")
 
 
 if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
-        print(
-            "Usage: python manage_memory.py <add|delete|list> [memory_text] [memory_id]"
-        )
+        print("Usage: python manage_memory.py <add|delete|list> [memory_text] [memory_id]")
         sys.exit(1)
 
     action = sys.argv[1]

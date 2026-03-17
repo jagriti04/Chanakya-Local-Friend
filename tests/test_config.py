@@ -8,8 +8,6 @@ by importing it in isolation after setting required environment variables.
 
 import os
 import sys
-import types
-import importlib
 import unittest
 from unittest.mock import patch
 
@@ -19,6 +17,7 @@ def _get_env_clean_func():
     Return a fresh copy of get_env_clean by executing only the function
     definition from config source, without running module-level code.
     """
+
     # We define the function inline here matching the implementation exactly,
     # so tests are pure-unit and don't trigger any side-effects.
     def get_env_clean(key, default=None, _env=None):
@@ -40,9 +39,7 @@ def _get_env_clean_func():
         val = val.strip()
         # Remove surrounding quotes
         if len(val) >= 2:
-            if (val[0] == '"' and val[-1] == '"') or (
-                val[0] == "'" and val[-1] == "'"
-            ):
+            if (val[0] == '"' and val[-1] == '"') or (val[0] == "'" and val[-1] == "'"):
                 val = val[1:-1]
         return val.strip()
 

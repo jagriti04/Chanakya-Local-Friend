@@ -23,26 +23,26 @@
 This guide will get you up and running in a few minutes. For more detailed instructions, please refer to our full documentation.
 
 1. **Clone the repository:**
-   
+
    ```bash
    git clone https://github.com/Rishabh-Bajpai/Chanakya-Local-Friend.git
    cd Chanakya-Local-Friend
    ```
 2. **Set up dependencies:**
-   
+
    - Ensure [Docker](https://www.docker.com/) and [Ollama](https://ollama.com/) are installed and running.
    - Pull the required Ollama models (e.g., `ollama pull hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:UD-Q4_K_XL`).
    - Run the dependent services for STT and TTS (see the [Getting Started Guide](./docs/getting-started.md) for details).
 3. **Configure the application:**
-   
+
    ```bash
    cp .env.example .env
    cp mcp_config_file.json.example mcp_config_file.json
    ```
-   
+
    - Edit `.env` and `mcp_config_file.json` with your settings. See the [Configuration Guide](./docs/configuration.md) for details.
 4. **Build and run with Docker:  or (for [Local Python Environment](./docs/getting-started.md))**
-   
+
 ```bash
 sudo docker build -t chanakya-assistant .
 sudo docker run --restart=always -d --network="host" --env-file .env --name chanakya chanakya-assistant
@@ -59,16 +59,19 @@ sudo docker run --restart=always -d --network="host" --env-file .env --name chan
    # Create and activate conda environment
    conda create -n chanakya python=3.11 -y
    conda activate chanakya
-   
+
    # Install dependencies
    pip install -r requirements.txt
-   
+
+   # Install pre-commit hooks
+   pre-commit install
+
    # Run Chanakya
    python chanakya.py
    ```
 
 5. **Access Chanakya:**
-   
+
    - Open your browser and navigate to `http://localhost:5001`.
    - For microphone access, HTTPS is required. See the [Deployment Guide](./docs/deployment.md) for instructions on setting up SSL.
 
@@ -109,4 +112,3 @@ This project is licensed under the MIT License. See the [LICENSE](./license.md) 
 ## 📈 Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Rishabh-Bajpai/Chanakya-Local-Friend&type=Date)](https://star-history.com/#Rishabh-Bajpai/Chanakya-Local-Friend&Date)
-

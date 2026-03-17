@@ -228,7 +228,7 @@ body {
 .input-container button {
     background: var(--button-bg);
     border: none;
-    color: var(--button-text-color); 
+    color: var(--button-text-color);
     border-radius: 50%; /* Circular buttons */
     width: 48px;        /* Explicit width */
     height: 48px;       /* Explicit height */
@@ -249,8 +249,8 @@ body {
 }
 
 .input-container button:disabled {
-    background: #555; 
-    color: #aaa;      
+    background: #555;
+    color: #aaa;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
