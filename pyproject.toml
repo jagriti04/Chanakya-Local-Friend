@@ -1,3 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Chanakya"
+version = "0.1.0"
+description = "A fully local chatbot"
+authors = [
+    {name = "Rishabh Bajpai", email = "rishabhbajpai24@gmail.com"},
+]
+requires-python = ">=3.11"
+dependencies = [
+    "nest_asyncio",
+    "requests",
+    "flask",
+    "flask_cors",
+    "flask[async]",
+    "langchain_ollama",
+    "langchain_openai",
+    "langchain",
+    "langchain_classic",
+    "langchain_mcp_adapters",
+    "langchain_core",
+    "openai",
+    "pyOpenSSL",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-flask",
+    "ruff",
+    "pre-commit",
+]
+
 [tool.ruff]
 line-length = 100
 

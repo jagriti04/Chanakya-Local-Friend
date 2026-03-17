@@ -61,7 +61,7 @@ sudo docker run --restart=always -d --network="host" --env-file .env --name chan
    conda activate chanakya
 
    # Install dependencies
-   pip install -r requirements.txt
+   pip install -e .[dev]
 
    # Install pre-commit hooks
    pre-commit install
@@ -85,6 +85,18 @@ For detailed information about installation, configuration, features, and troubl
 - [Usage](./docs/usage.md)
 - [Features](./docs/features.md)
 - [Troubleshooting](./docs/troubleshooting.md)
+
+## 🧹 Code Quality (Pre-commit Hooks)
+
+To ensure standardized code formatting, linting, and spelling across the repository, we use **`pre-commit`** combined with **Ruff** and **Codespell**.
+
+If you plan to contribute:
+1. Ensure you have installed the hooks locally by running: `pre-commit install`
+2. Hooks will automatically run against your changed files during `git commit`.
+3. To manually run the checks across the entire codebase at any time, run:
+   ```bash
+   pre-commit run --all-files
+   ```
 
 ## 🤝 Contributing
 

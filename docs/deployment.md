@@ -56,7 +56,7 @@ This method is ideal for developers who want to work on the Chanakya codebase di
 
 2.  **Install Dependencies:**
     ```bash
-    uv pip install -r requirements.txt
+    uv pip install .
     ```
 
 3.  **Run the Application:**

@@ -12,9 +12,9 @@ RUN apt-get update && \
 # Upgrade pip and build tools to avoid issues with building wheels
 RUN pip install --upgrade pip setuptools wheel
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy pyproject.toml first to leverage Docker cache
+COPY pyproject.toml .
+RUN pip install --no-cache-dir .
 
 # (Optional) Install any system dependencies needed by your tools
 # RUN apt-get update && apt-get install -y ...

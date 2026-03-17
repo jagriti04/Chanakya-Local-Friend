@@ -14,11 +14,11 @@ docker build -t chanakya-assistant . && docker run --restart=always -d --network
 ### Dependencies
 ```bash
 # Using pip
-pip install -r requirements.txt  # Python 3.11+ required
+pip install -e .[dev]  # Python 3.11+ required
 
 # Using conda (if environment 'chanakya' exists)
 conda activate chanakya
-pip install -r requirements.txt
+pip install -e .[dev]
 ```
 
 ### Testing (pytest)
@@ -111,7 +111,7 @@ Frontend: `src/frontend/templates/` | `src/frontend/static/`
 - Never commit: `.env`, `mcp_config_file.json` (with secrets), SSL certs
 - Validate user input in routes
 - No stack traces in production responses
-- Keep `requirements.txt` version-pinned
+- Keep dependencies pinned in `pyproject.toml`
 
 ## Workflow
 1. `python chanakya.py`
