@@ -39,6 +39,18 @@ jobs:
 
             for (const issueNumber of issueNumbers) {
               try {
+                // Fetch the issue to check if it's actually a pull request
+                const { data: issue } = await github.rest.issues.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                });
+
+                if (issue.pull_request) {
+                  console.log(`Skipping #${issueNumber} because it is a pull request, not an issue.`);
+                  continue;
+                }
+
                 await github.rest.issues.update({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
