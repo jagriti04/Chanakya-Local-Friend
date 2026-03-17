@@ -42,7 +42,7 @@ jobs:
             ghcr.io/speaches-ai/speaches:0.7.0-cpu
           
           # Wait for the container to become responsive to avoid initial connection errors
-          timeout 60 bash -c 'until curl -s http://localhost:8000/v1/models > /dev/null; do sleep 2; done' || true
+          timeout 60 bash -c 'until curl -s http://localhost:8000/v1/models > /dev/null; do sleep 2; done'
 
       - name: Set up Python
         uses: actions/setup-python@v5
