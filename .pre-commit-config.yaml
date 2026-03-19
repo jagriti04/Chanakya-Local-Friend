@@ -11,10 +11,10 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.0
+    rev: v0.15.6
     hooks:
       - id: ruff
-        args: [ --fix ]
+        args: [--fix]
         exclude: '^(thirdparty|.*\.min\.js|.*\.map|.*\.svg)'
       - id: ruff-format
         exclude: '^(thirdparty|.*\.min\.js|.*\.map|.*\.svg)'
