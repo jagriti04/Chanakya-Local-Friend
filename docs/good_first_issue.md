@@ -11,11 +11,13 @@ If you’re new to open source or this project, this guide will help you get sta
 
    - Go to our [Good First Issues](https://github.com/Rishabh-Bajpai/Chanakya-Local-Friend/issues?q=is%3Aissue+is%3Aopen+label%3A"good+first+issue") list.
    - Pick one that looks interesting to you.
+
 2. **Claim It**
 
    - Comment on the issue:
      > “Hi, I’d like to work on this issue. Can I be assigned?”
    - A maintainer will assign it to you.
+
 3. **Fork & Clone**
 
    ```bash
@@ -23,12 +25,12 @@ If you’re new to open source or this project, this guide will help you get sta
    git clone https://github.com/YOUR_USERNAME/Chanakya-Local-Friend.git
    cd Chanakya-Local-Friend
    ```
+
 4. **Create a Branch**
 
    ```bash
    git checkout -b fix/short-description
    ```
-
 
 5. **Work on the Issue**
 
@@ -38,6 +40,7 @@ If you’re new to open source or this project, this guide will help you get sta
      ```bash
      git commit -m "fix: clear description of what you fixed"
      ```
+
 6. **Push & Open a PR**
 
    ```bash
