@@ -24,6 +24,7 @@ dependencies = [
     "langchain_core",
     "openai",
     "pyOpenSSL",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]
