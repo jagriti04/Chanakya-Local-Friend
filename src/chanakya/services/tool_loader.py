@@ -70,7 +70,13 @@ async def load_all_mcp_tools_async(force_reload=False) -> List[BaseTool]:
         mcp_tool_names_for_llm = ""
         return []
 
-    app.logger.info(f"Initializing MCPClient for Chanakya with processed config: {cfg_local}")
+    sanitized_cfg = {}
+    for name, config in cfg_local.items():
+        sanitized_cfg[name] = {k: v for k, v in config.items() if k != "env"}
+        if "env" in config:
+            sanitized_cfg[name]["env"] = "[REDACTED]"
+
+    app.logger.info(f"Initializing MCPClient for Chanakya with processed config: {sanitized_cfg}")
     client = MultiServerMCPClient(cfg_local)
     app.logger.info("Loading all MCP tools via client for Chanakya (ASYNCHRONOUSLY)...")
 
