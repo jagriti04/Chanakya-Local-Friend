@@ -111,7 +111,7 @@ Frontend: `src/frontend/templates/` | `src/frontend/static/`
 - Never commit: `.env`, `mcp_config_file.json` (with secrets), SSL certs
 - Validate user input in routes
 - No stack traces in production responses
-- Keep dependencies pinned in `pyproject.toml`
+- Specify minimum lower bounds (`>=`) for all deps in `pyproject.toml`; avoid bare unpinned names
 
 ## Workflow
 1. `python chanakya.py`

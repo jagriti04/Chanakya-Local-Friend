@@ -11,30 +11,30 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "nest_asyncio",
-    "requests",
-    "flask",
-    "flask_cors",
-    "flask[async]",
-    "langchain_ollama",
-    "langchain_openai",
-    "langchain",
-    "langchain_classic",
-    "langchain_mcp_adapters",
-    "langchain_core",
-    "openai",
-    "pyOpenSSL",
-    "python-dotenv",
+    "nest_asyncio>=1.6.0",
+    "requests>=2.32.5",
+    "flask>=3.1.3",
+    "flask-cors>=6.0.2",
+    "flask[async]>=3.1.3",
+    "langchain-ollama>=1.0.1",
+    "langchain-openai>=1.1.11",
+    "langchain>=1.2.12",
+    "langchain-classic>=1.0.3",
+    "langchain-mcp-adapters>=0.2.2",
+    "langchain-core>=1.2.19",
+    "openai>=2.29.0",
+    "pyOpenSSL>=26.0.0",
+    "python-dotenv>=1.1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "pytest-asyncio",
-    "pytest-flask",
-    "ruff",
-    "pre-commit",
-    "interrogate",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-flask>=1.3.0",
+    "ruff>=0.15.6",
+    "pre-commit>=4.5.1",
+    "interrogate>=1.7.0",
 ]
 
 [tool.ruff]
