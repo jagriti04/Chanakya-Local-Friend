@@ -27,7 +27,10 @@ from .chat_history import get_chat_history
 
 
 class CustomReActSingleInputOutputParser(AgentOutputParser):
+    """Custom output parser for ReAct agents that handles <think> tags and JSON tool inputs."""
+
     def _parse_json_input(self, tool_input_str: str) -> Any:
+        """Attempt to parse a tool input string as JSON; return the raw string if parsing fails."""
         tool_input_str_stripped = tool_input_str.strip()
         if tool_input_str_stripped.startswith(("{", "[")) and tool_input_str_stripped.endswith(
             ("}", "]")
@@ -40,6 +43,7 @@ class CustomReActSingleInputOutputParser(AgentOutputParser):
         return tool_input_str_stripped
 
     def parse(self, text: str) -> Union[AgentAction, AgentFinish]:
+        """Parse raw LLM output into an AgentAction or AgentFinish, stripping any <think> wrappers."""
         app.logger.debug(
             f"ReAct Parser (LLM always wraps in <think>): Raw text received:\n'''{text}'''"
         )
@@ -201,10 +205,12 @@ class CustomReActSingleInputOutputParser(AgentOutputParser):
 
     @property
     def _type(self) -> str:
+        """Return a unique identifier for this parser used by LangChain serialisation."""
         return "custom_react_parser_chanakya_v_outer_think"
 
 
 def get_chanakya_react_agent_with_history():
+    """Build and return a RunnableWithMessageHistory wrapping the Chanakya ReAct AgentExecutor."""
     provider = config.LLM_PROVIDER.lower()
     app.logger.info(f"Configuring LLM with provider: {provider}")
 

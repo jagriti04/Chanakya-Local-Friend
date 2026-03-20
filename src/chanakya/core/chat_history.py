@@ -10,4 +10,5 @@ _global_chat_memory = InMemoryChatMessageHistory()
 
 
 def get_chat_history(session_id: str):
+    """Return the global in-memory chat history, ignoring session_id (single shared session)."""
     return _global_chat_memory

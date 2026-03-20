@@ -41,6 +41,7 @@ from .client_activity import (
 
 @app.route("/")
 def index():
+    """Render the main chat interface and track client activity."""
     update_client_activity(request.remote_addr)
     return render_template(
         "index_full_chat.html",
@@ -50,6 +51,7 @@ def index():
 
 
 def background_thread():
+    """Periodically remove inactive clients and persist the active client count to disk."""
     last_save_time = time.time()
     while True:
         current_time = time.time()
@@ -66,6 +68,7 @@ def background_thread():
 
 @app.route("/chat", methods=["POST"])
 async def chat():
+    """Handle a text chat message, invoke the ReAct agent, and return the AI response as JSON."""
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -184,6 +187,7 @@ Current date and time: {current_dt_str}"""
 
 @app.route("/record", methods=["POST"])
 async def record():
+    """Transcribe an uploaded audio file, invoke the ReAct agent, and return the AI response with TTS audio."""
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -337,6 +341,7 @@ Current date and time: {current_dt_str}"""
 
 @app.route("/play_response", methods=["POST"])
 def play_response():
+    """Generate TTS audio for the most recent AI response and return it as a base64-encoded data URL."""
     update_client_activity(request.remote_addr)
     if utils_module.last_ai_response:
         try:
