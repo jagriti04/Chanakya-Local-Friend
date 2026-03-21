@@ -22,7 +22,7 @@ dependencies = [
     "langchain-mcp-adapters>=0.2.2",
     "langchain-core>=1.2.19",
     "openai>=2.29.0",
-    "pyOpenSSL>=26.0.0",
+    "pyopenssl>=26.0.0",
     "python-dotenv>=1.1.0",
 ]
 
