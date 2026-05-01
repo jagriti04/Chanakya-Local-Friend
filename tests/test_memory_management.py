@@ -12,8 +12,6 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, "/home/jailuser/git")
-
 
 def make_memory_management_module(db_path):
     """

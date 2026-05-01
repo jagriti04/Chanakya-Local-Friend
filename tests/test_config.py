@@ -66,7 +66,6 @@ def import_get_env_clean():
         for key in list(sys.modules.keys()):
             if "chanakya" in key:
                 del sys.modules[key]
-        sys.path.insert(0, "/home/jailuser/git")
         from src.chanakya.config import get_env_clean
     return get_env_clean
 

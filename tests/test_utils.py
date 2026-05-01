@@ -5,10 +5,7 @@ Focus: get_plain_text_content() function - cleaning and extracting
 plain text from various input types.
 """
 
-import sys
 import unittest
-
-sys.path.insert(0, "/home/jailuser/git")
 
 from src.chanakya.utils.utils import get_plain_text_content
 

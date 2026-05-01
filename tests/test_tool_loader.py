@@ -12,8 +12,6 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, "/home/jailuser/git")
-
 
 def build_server_config_from_details(details: dict, os_environ: dict | None = None) -> dict:
     """
@@ -285,10 +283,6 @@ class TestToolLoaderCachingLogic(unittest.TestCase):
 class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
     """
     Integration tests for the env injection within the full load_all_mcp_tools_async flow.
-
-    Note: tool_loader.py uses os.environ.get() in the env injection block but is missing
-    `import os` at the top of the file. This test patches `os` into the module's namespace
-    to allow testing the injection logic.
     """
 
     def setUp(self):
@@ -305,8 +299,6 @@ class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
         """
         Verify that when BRAVE_API_KEY is set in OS env, it gets injected
         into the server config when loading tools.
-        Patches 'os' into tool_loader module namespace to work around the missing
-        `import os` in tool_loader.py.
         """
         with patch.dict(
             os.environ,
@@ -317,13 +309,7 @@ class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
                 "BRAVE_API_KEY": "real-brave-key-from-env",
             },
         ):
-            # Patch 'os' into the module's namespace to fix the missing import
-            import os as _os
-
             from src.chanakya.services import tool_loader
-
-            tool_loader_module = sys.modules["src.chanakya.services.tool_loader"]
-            setattr(tool_loader_module, "os", _os)
 
             tool_loader.CACHED_MCP_TOOLS = []
             tool_loader.MCP_TOOLS_LOADED_FLAG = False
@@ -366,12 +352,8 @@ class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
                 "real-brave-key-from-env",
             )
 
-    def test_missing_os_import_causes_name_error(self):
-        """
-        This is a regression test documenting that tool_loader.py is missing
-        `import os` at the top. Without patching, load_all_mcp_tools_async will
-        raise NameError when it tries to call os.environ.get().
-        """
+    def test_env_injection_works_without_module_patching(self):
+        """load_all_mcp_tools_async should use os.environ without extra test patching."""
         with patch.dict(
             os.environ,
             {
@@ -380,59 +362,41 @@ class TestToolLoaderEnvInjectionIntegration(unittest.TestCase):
                 "DATABASE_PATH": ":memory:",
             },
         ):
-            for key in list(sys.modules.keys()):
-                if "chanakya" in key:
-                    del sys.modules[key]
-
             from src.chanakya.services import tool_loader
 
-            # Ensure 'os' is NOT patched in the module (it shouldn't be there)
-            tool_loader_module = sys.modules["src.chanakya.services.tool_loader"]
-            had_os = hasattr(tool_loader_module, "os")
-            if had_os:
-                delattr(tool_loader_module, "os")
+            tool_loader.CACHED_MCP_TOOLS = []
+            tool_loader.MCP_TOOLS_LOADED_FLAG = False
 
-            try:
-                tool_loader.CACHED_MCP_TOOLS = []
-                tool_loader.MCP_TOOLS_LOADED_FLAG = False
-
-                mcp_config = {
-                    "server": {
-                        "command": "cmd",
-                        "args": [],
-                        "env": {"API_KEY": "placeholder"},
-                    }
+            mcp_config = {
+                "server": {
+                    "command": "cmd",
+                    "args": [],
+                    "env": {"API_KEY": "placeholder"},
                 }
+            }
+            captured_config = {}
 
-                class MockMCPClient:
-                    def __init__(self, cfg):
-                        pass
+            class MockMCPClient:
+                def __init__(self, cfg):
+                    captured_config.update(cfg)
 
-                    async def get_tools(self):
-                        return []
+                async def get_tools(self):
+                    return []
 
-                with (
-                    patch(
-                        "src.chanakya.services.tool_loader.load_mcp_config_internal"
-                    ) as mock_load,
-                    patch(
-                        "src.chanakya.services.tool_loader.MultiServerMCPClient",
-                        MockMCPClient,
-                    ),
-                ):
-                    mock_load.return_value = mcp_config
-                    try:
-                        asyncio.new_event_loop().run_until_complete(
-                            tool_loader.load_all_mcp_tools_async(force_reload=True)
-                        )
-                        # If it doesn't raise, 'os' was somehow available - that's fine
-                    except NameError:
-                        # This confirms the bug: NameError: name 'os' is not defined
-                        pass  # Expected behavior given the missing import
-            finally:
-                # Restore 'os' if it was there before
-                if had_os:
-                    setattr(tool_loader_module, "os", os)
+            with (
+                patch("src.chanakya.services.tool_loader.load_mcp_config_internal") as mock_load,
+                patch(
+                    "src.chanakya.services.tool_loader.MultiServerMCPClient",
+                    MockMCPClient,
+                ),
+            ):
+                mock_load.return_value = mcp_config
+                asyncio.new_event_loop().run_until_complete(
+                    tool_loader.load_all_mcp_tools_async(force_reload=True)
+                )
+
+            self.assertIn("server", captured_config)
+            self.assertEqual(captured_config["server"]["env"]["API_KEY"], "placeholder")
 
 
 if __name__ == "__main__":

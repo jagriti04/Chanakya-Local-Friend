@@ -5,12 +5,15 @@ Handles environment variable loading, validation, and application-wide settings.
 Provides the get_env_clean() helper for parsing .env values with comments/quotes.
 """
 
+import logging
 import os
 import secrets
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 def get_env_clean(key, default=None):
@@ -35,14 +38,15 @@ def get_env_clean(key, default=None):
 
 # General App Config
 DEBUG_MODE = os.environ.get("FLASK_DEBUG", "True").lower() in ("true", "1", "t")
+CONFIG_DEBUG = os.environ.get("CONFIG_DEBUG", "").lower() in ("true", "1", "t")
 
 # Secure APP_SECRET_KEY handling
 APP_SECRET_KEY = os.environ.get("APP_SECRET_KEY")
 if not APP_SECRET_KEY:
     if DEBUG_MODE:
         APP_SECRET_KEY = secrets.token_hex(32)
-        print(
-            f"[CONFIG WARNING] APP_SECRET_KEY not set. Using generated dev fallback: {APP_SECRET_KEY}"
+        logger.warning(
+            "[CONFIG WARNING] APP_SECRET_KEY not set. Using generated development fallback."
         )
     else:
         raise ValueError(
@@ -88,7 +92,7 @@ if llm_num_ctx_small_env is not None:
         try:
             LLM_NUM_CTX_SMALL = int(llm_num_ctx_small_env)
         except ValueError:
-            print(
+            logger.warning(
                 f"[CONFIG WARNING] Invalid LLM_NUM_CTX_SMALL: '{llm_num_ctx_small_env}', using 2048"
             )
             LLM_NUM_CTX_SMALL = 2048
@@ -124,9 +128,9 @@ CLIENT_COUNT_FILE = os.environ.get("CLIENT_COUNT_FILE", "client_count.txt")
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SCRIPTS_DIR = os.path.join(PROJECT_ROOT, "scripts")
 
-# Debug: Print resolved config values at startup
-print(f"[CONFIG DEBUG] LLM_PROVIDER='{LLM_PROVIDER}'")
-print(f"[CONFIG DEBUG] LLM_ENDPOINT='{LLM_ENDPOINT}'")
-print(f"[CONFIG DEBUG] LLM_MODEL_NAME='{LLM_MODEL_NAME}' (raw env: '{_raw_model_name}')")
-print(f"[CONFIG DEBUG] LLM_MODEL_NAME_SMALL='{LLM_MODEL_NAME_SMALL}'")
-print(f"[CONFIG DEBUG] LLM_ENDPOINT_SMALL='{LLM_ENDPOINT_SMALL}'")
+if DEBUG_MODE and CONFIG_DEBUG:
+    logger.debug(f"[CONFIG DEBUG] LLM_PROVIDER='{LLM_PROVIDER}'")
+    logger.debug(f"[CONFIG DEBUG] LLM_ENDPOINT='{LLM_ENDPOINT}'")
+    logger.debug(f"[CONFIG DEBUG] LLM_MODEL_NAME='{LLM_MODEL_NAME}' (raw env: '{_raw_model_name}')")
+    logger.debug(f"[CONFIG DEBUG] LLM_MODEL_NAME_SMALL='{LLM_MODEL_NAME_SMALL}'")
+    logger.debug(f"[CONFIG DEBUG] LLM_ENDPOINT_SMALL='{LLM_ENDPOINT_SMALL}'")

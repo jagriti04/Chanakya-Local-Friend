@@ -10,7 +10,7 @@ REACT_AGENT_PROMPT_TEMPLATE_STR = """
 You have access to the following tools:
 {tools}
 
-IMPORTANT: You may wrap your entire response for a turn in a tags. Inside these tags, you MUST strictly follow the Thought/Action/Final Answer format. Do not use <think> tags inside your Thought, Action, or Final Answer text itself.
+IMPORTANT: You may wrap your entire response for a turn in <think>...</think> tags. Inside these tags, you MUST strictly follow the Thought/Action/Final Answer format. Do not use <think> tags inside your Thought, Action, or Final Answer text itself.
 
 To use a tool, you MUST use the following format, producing only ONE action block per turn:
 Thought: [Your reasoning for the current action. Focus on a single step.]
@@ -40,7 +40,7 @@ Thought:{agent_scratchpad}
 """
 
 QUERY_REFINEMENT_TEMPLATE_STR = """
-You are an expert at converting user questions into a set of relevant keywords suitable for retrieving information from a knowledge base. Don't generate any keyword if the User's question is not relarted to any memory or doesn't need memories to answer.
+You are an expert at converting user questions into a set of relevant keywords suitable for retrieving information from a knowledge base. Don't generate any keyword if the User's question is not related to any memory or doesn't need memories to answer.
 Your last response: {ai_response}
 User question: {user_question}
 Generate up to 10 distinct (less is better), concise keywords that capture the main concepts. Remove articles and unnecessary words. Separate the keywords with commas.

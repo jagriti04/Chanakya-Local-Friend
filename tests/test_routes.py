@@ -11,8 +11,6 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-sys.path.insert(0, "/home/jailuser/git")
-
 
 def setup_flask_app():
     """

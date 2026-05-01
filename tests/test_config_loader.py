@@ -11,8 +11,6 @@ import sys
 import tempfile
 import unittest
 
-sys.path.insert(0, "/home/jailuser/git")
-
 
 def get_load_mcp_config_internal():
     """

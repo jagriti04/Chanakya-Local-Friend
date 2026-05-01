@@ -5,10 +5,7 @@ Focus: Verify prompt template string constants contain required placeholders
 and that the module exports them correctly.
 """
 
-import sys
 import unittest
-
-sys.path.insert(0, "/home/jailuser/git")
 
 from src.chanakya.prompts import (
     QUERY_REFINEMENT_TEMPLATE_STR as QUERY_FROM_INIT,
@@ -83,6 +80,9 @@ class TestReactAgentPromptTemplate(unittest.TestCase):
     def test_contains_begin_marker(self):
         self.assertIn("Begin!", REACT_AGENT_PROMPT_TEMPLATE_STR)
 
+    def test_explicitly_mentions_think_tags(self):
+        self.assertIn("<think>...</think>", REACT_AGENT_PROMPT_TEMPLATE_STR)
+
     def test_double_brace_escaping_for_json_example(self):
         # The template uses {{ }} to escape literal braces in the format string
         self.assertIn("{{", REACT_AGENT_PROMPT_TEMPLATE_STR)
@@ -119,6 +119,9 @@ class TestQueryRefinementTemplate(unittest.TestCase):
 
     def test_mentions_knowledge_base(self):
         self.assertIn("knowledge base", QUERY_REFINEMENT_TEMPLATE_STR.lower())
+
+    def test_uses_related_spelling(self):
+        self.assertIn("not related to any memory", QUERY_REFINEMENT_TEMPLATE_STR)
 
 
 class TestPromptsModuleExports(unittest.TestCase):
