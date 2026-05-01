@@ -37,5 +37,3 @@ Fixes #(issue_number)
 ## 🙌 Additional Notes
 
 Anything else the reviewers should know?
-
-

@@ -89,5 +89,3 @@ Here are some high-impact areas where contributions are especially welcome:
 
 Every contribution counts—whether it’s fixing a typo, suggesting an idea, or building a big feature.
 Let’s make **Chanakya-Local-Friend** the go-to local AI companion together!
-
-

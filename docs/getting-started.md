@@ -99,7 +99,7 @@ cd Chanakya-Local-Friend
     ```
   - Install the required dependencies:
     ```bash
-    uv pip install -r requirements.txt
+    uv pip install -e .[dev]
     ```
   - Run the application:
     ```bash

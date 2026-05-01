@@ -7,7 +7,7 @@ venv/
 *.db # If your sqlite DB is just for local history
 *.sqlite3
 .env
-mcp_config_file.json 
+mcp_config_file.json
 # Any other local config files or build artifacts
 client_count.txt
 output.wav
