@@ -120,7 +120,7 @@ class TestQueryRefinementTemplate(unittest.TestCase):
     def test_mentions_knowledge_base(self):
         self.assertIn("knowledge base", QUERY_REFINEMENT_TEMPLATE_STR.lower())
 
-    def test_contains_related_not_relarted(self):
+    def test_contains_related_not_related(self):
         self.assertIn("not related to any memory", QUERY_REFINEMENT_TEMPLATE_STR)
 
 

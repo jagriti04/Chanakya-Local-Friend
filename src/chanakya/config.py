@@ -49,7 +49,7 @@ if not APP_SECRET_KEY:
             "[CONFIG WARNING] APP_SECRET_KEY not set. Using generated development fallback."
         )
         if CONFIG_DEBUG:
-            logger.debug(f"[CONFIG DEBUG] Generated APP_SECRET_KEY='{APP_SECRET_KEY}'")
+            logger.debug("[CONFIG DEBUG] Generated an APP_SECRET_KEY development fallback.")
     else:
         raise ValueError(
             "APP_SECRET_KEY environment variable is required in production mode (FLASK_DEBUG is False)."
