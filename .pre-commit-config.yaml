@@ -33,5 +33,5 @@ repos:
     rev: 1.7.0
     hooks:
       - id: interrogate
-        args: [-vv, -i, --fail-under=0]
+        args: [-vv, -i, --fail-under=10]
         exclude: '^(thirdparty|tests|docs|scripts)'
