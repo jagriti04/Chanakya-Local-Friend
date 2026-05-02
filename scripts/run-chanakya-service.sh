@@ -23,6 +23,7 @@ CHANAKYA_PORT="${CHANAKYA_PORT:-5513}"
 export ENV_FILE_PATH="$ROOT_ENV_FILE"
 export PYTHONUNBUFFERED=1
 export AIR_SERVER_URL="http://localhost:${AIR_PORT}"
+export PYTHONPATH="$ROOT_DIR/apps${PYTHONPATH:+:$PYTHONPATH}"
 
 cd "$ROOT_DIR"
 exec "$PYTHON_BIN" -m flask --app chanakya.app run --host 0.0.0.0 --port "$CHANAKYA_PORT"

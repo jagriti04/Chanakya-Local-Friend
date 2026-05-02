@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CONVERSATION_LAYER_DIR="$ROOT_DIR/chanakya_conversation_layer"
+CONVERSATION_LAYER_DIR="$ROOT_DIR/apps/chanakya_conversation_layer"
 PYTHON_BIN="$ROOT_DIR/.venv/bin/python"
 ROOT_ENV_FILE="${ENV_FILE_PATH:-$ROOT_DIR/.env}"
 

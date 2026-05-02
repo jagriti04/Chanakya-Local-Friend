@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AIR_DIR="$ROOT_DIR/AI-Router-AIR"
-CONVERSATION_LAYER_DIR="$ROOT_DIR/chanakya_conversation_layer"
+AIR_DIR="$ROOT_DIR/apps/AI-Router-AIR"
+CONVERSATION_LAYER_DIR="$ROOT_DIR/apps/chanakya_conversation_layer"
 A2A_APP_DIR="$CONVERSATION_LAYER_DIR/a2a_example_app"
 RUNTIME_DIR="$ROOT_DIR/build/runtime"
 mkdir -p "$RUNTIME_DIR"
@@ -119,7 +119,7 @@ start_process \
   "Chanakya" \
   "$CHANAKYA_PID_FILE" \
   "$CHANAKYA_LOG_FILE" \
-  bash -lc "cd '$ROOT_DIR' && exec env PYTHONUNBUFFERED=1 AIR_SERVER_URL='http://localhost:$AIR_PORT' A2A_AGENT_URL='http://$A2A_HOST:$A2A_PORT' '$PYTHON_BIN' -m flask --app chanakya.app run --host 0.0.0.0 --port '$CHANAKYA_PORT'"
+  bash -lc "cd '$ROOT_DIR' && exec env PYTHONUNBUFFERED=1 PYTHONPATH='$ROOT_DIR/apps' AIR_SERVER_URL='http://localhost:$AIR_PORT' A2A_AGENT_URL='http://$A2A_HOST:$A2A_PORT' '$PYTHON_BIN' -m flask --app chanakya.app run --host 0.0.0.0 --port '$CHANAKYA_PORT'"
 
 printf '\nAIR dashboard: http://localhost:%s\n' "$AIR_PORT"
 printf 'Conversation layer: http://%s:%s\n' "$CONVERSATION_LAYER_HOST" "$CONVERSATION_LAYER_PORT"

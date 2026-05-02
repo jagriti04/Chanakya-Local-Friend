@@ -73,8 +73,8 @@ if [[ ! -x "$PYTHON_BIN" ]]; then
   echo "  source .venv/bin/activate"
   echo "  pip install --upgrade pip"
   echo "  pip install -e .[dev]"
-  echo "  pip install -e ./AI-Router-AIR"
-  echo "  pip install -e ./chanakya_conversation_layer"
+  echo "  pip install -e ./apps/AI-Router-AIR"
+  echo "  pip install -e ./apps/chanakya_conversation_layer"
   exit 1
 fi
 

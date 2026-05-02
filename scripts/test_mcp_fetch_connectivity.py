@@ -1,6 +1,10 @@
 import asyncio
 import argparse
+import os
 import shutil
+import sys
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "apps")))
 
 import pytest
 from agent_framework import MCPStdioTool

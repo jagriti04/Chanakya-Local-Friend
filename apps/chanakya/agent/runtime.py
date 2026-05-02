@@ -92,7 +92,7 @@ def build_profile_agent_config(profile: AgentProfileModel) -> ProfileAgentConfig
     return build_profile_agent_config_for_usage(
         profile,
         usage_text="",
-        repo_root=Path(__file__).resolve().parents[2],
+        repo_root=Path(__file__).resolve().parents[3],
     )
 
 
@@ -107,7 +107,7 @@ def build_profile_agent_config_for_usage(
     all_cached = get_cached_tools()
     allowed_ids = list(profile.tool_ids_json or [])
     cached_tools = [t for t in all_cached if getattr(t, "name", None) in allowed_ids]
-    root = repo_root or Path(__file__).resolve().parents[2]
+    root = repo_root or Path(__file__).resolve().parents[3]
     profile_prompt = load_agent_prompt(profile, repo_root=root, usage_text=usage_text)
     addendum = str(prompt_addendum or "").strip()
     if addendum:
@@ -191,7 +191,7 @@ class MAFRuntime:
         a2a_agent_factory: Any | None = None,
     ) -> None:
         self.profile = profile
-        self.repo_root = Path(__file__).resolve().parents[2]
+        self.repo_root = Path(__file__).resolve().parents[3]
         self.env_file_path = env_file_path
         self.session_factory = session_factory
         self.history_provider = SQLAlchemyHistoryProvider(
