@@ -103,7 +103,7 @@ start_process \
   "AIR server" \
   "$AIR_PID_FILE" \
   "$AIR_LOG_FILE" \
-  bash -lc "cd '$AIR_DIR' && exec env PYTHONUNBUFFERED=1 SERVER_PORT='$AIR_PORT' '$PYTHON_BIN' -m server.main"
+  bash -lc "cd '$AIR_DIR' && exec env PYTHONUNBUFFERED=1 SERVER_PORT='$AIR_PORT' '$PYTHON_BIN' -m uvicorn server.main:app --host 0.0.0.0 --port '$AIR_PORT'"
 
 start_process \
   "Chanakya conversation layer" \

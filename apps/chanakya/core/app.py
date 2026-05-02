@@ -339,7 +339,11 @@ event_bus = _EventBus()
 
 def create_app() -> Flask:
     load_local_env()
-    app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
+    app = Flask(
+        __name__,
+        template_folder=str(BASE_DIR / "templates"),
+        static_folder=str(BASE_DIR / "static"),
+    )
 
     data_dir = get_data_dir()
     database_url = get_database_url()
