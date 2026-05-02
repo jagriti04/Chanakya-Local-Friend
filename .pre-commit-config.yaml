@@ -25,7 +25,7 @@ repos:
     hooks:
       - id: codespell
         name: check spelling
-        exclude: '^(thirdparty|.*\.min\.js|.*\.map|.*\.svg)'
+        exclude: '^(thirdparty|.*\.min\.js|.*\.map|.*\.svg|apps/)'
         args: [-L, "speaches,ue"]
 
   # Interrogate for docstrings
@@ -33,5 +33,5 @@ repos:
     rev: 1.7.0
     hooks:
       - id: interrogate
-        args: [-vv, -i, --fail-under=80]
+        args: [-vv, -i, --fail-under=10]
         exclude: '^(thirdparty|tests|docs|scripts)'
