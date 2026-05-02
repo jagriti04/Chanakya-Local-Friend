@@ -279,8 +279,8 @@ VIEWER_HTML = """
                     if (e.shiftKey && lastChecked) {
                          let start = Array.from(checkboxes).indexOf(this);
                          let end = Array.from(checkboxes).indexOf(lastChecked);
-                         let inBetween = Array.from(checkboxes).slice(Math.min(start, end), Math.max(start, end) + 1);
-                         inBetween.forEach(box => {
+                         let in_between = Array.from(checkboxes).slice(Math.min(start, end), Math.max(start, end) + 1);
+                         in_between.forEach(box => {
                              box.checked = lastChecked.checked;
                              updateRowStyle(box);
                          });

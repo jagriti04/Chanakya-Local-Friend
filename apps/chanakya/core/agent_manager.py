@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 import json
 import re
 from contextvars import ContextVar, Token
@@ -14,9 +13,9 @@ from agent_framework import Agent, Message
 from agent_framework.openai import OpenAIChatClient
 from agent_framework.orchestrations import SequentialBuilder
 from agent_framework_orchestrations._group_chat import (
-    AgentOrchestrationOutput,
     AgentBasedGroupChatOrchestrator,
     AgentExecutor,
+    AgentOrchestrationOutput,
     ParticipantRegistry,
     WorkflowBuilder,
 )
@@ -57,7 +56,11 @@ from chanakya.mcp_runtime import (
 from chanakya.model import AgentProfileModel
 from chanakya.services.async_loop import run_in_maf_loop
 from chanakya.services.mcp_sandbox_exec_server import execute_python
-from chanakya.services.sandbox_workspace import CLASSIC_ARTIFACT_WORKSPACE_ID, normalize_work_id, resolve_shared_workspace
+from chanakya.services.sandbox_workspace import (
+    CLASSIC_ARTIFACT_WORKSPACE_ID,
+    normalize_work_id,
+    resolve_shared_workspace,
+)
 from chanakya.store import ChanakyaStore
 from chanakya.subagents import (
     TemporaryAgentPlan,
@@ -148,7 +151,10 @@ class GroupChatCompletionAssessment:
 
     @property
     def completion_allowed(self) -> bool:
-        if self.requirements.require_developer_implementation and not self.developer_implementation_seen:
+        if (
+            self.requirements.require_developer_implementation
+            and not self.developer_implementation_seen
+        ):
             return False
         if self.requirements.require_tester_validation and not self.tester_validation_seen:
             return False
@@ -238,7 +244,9 @@ class TracedAgentExecutor(AgentExecutor):
                     "error": str(exc),
                 },
             )
-        response_messages = [_serialize_trace_message(item) for item in _safe_response_messages(response)]
+        response_messages = [
+            _serialize_trace_message(item) for item in _safe_response_messages(response)
+        ]
         self._trace_store.participant_calls.append(
             {
                 "call_index": len(self._trace_store.participant_calls),
@@ -275,15 +283,22 @@ class TracedGroupChatOrchestrator(AgentBasedGroupChatOrchestrator):
         self._trace_store = trace_store
 
     async def _invoke_agent(self) -> AgentOrchestrationOutput:
-        async def _invoke_agent_helper(conversation: list[Message]) -> tuple[AgentOrchestrationOutput, Any]:
+        async def _invoke_agent_helper(
+            conversation: list[Message],
+        ) -> tuple[AgentOrchestrationOutput, Any]:
             agent_response = await self._agent.run(
                 messages=conversation,
                 session=self._session,
                 options={"response_format": AgentOrchestrationOutput},
             )
             agent_orchestration_output = self._parse_agent_output(agent_response)
-            if not agent_orchestration_output.terminate and not agent_orchestration_output.next_speaker:
-                raise ValueError("next_speaker must be provided if not terminating the conversation.")
+            if (
+                not agent_orchestration_output.terminate
+                and not agent_orchestration_output.next_speaker
+            ):
+                raise ValueError(
+                    "next_speaker must be provided if not terminating the conversation."
+                )
             return agent_orchestration_output, agent_response
 
         current_conversation = self._cache.copy()
@@ -297,14 +312,15 @@ class TracedGroupChatOrchestrator(AgentBasedGroupChatOrchestrator):
             '  "final_message": "<optional final message if terminating>"\n'
             "}\n"
             "If not terminating, here are the valid participant names (case-sensitive) and their descriptions:\n"
-            + "\n".join([
-                f"{name}: {description}" for name, description in self._participant_registry.participants.items()
-            ])
+            + "\n".join(
+                [
+                    f"{name}: {description}"
+                    for name, description in self._participant_registry.participants.items()
+                ]
+            )
         )
         manager_call_messages = [_serialize_trace_message(item) for item in current_conversation]
-        manager_call_messages.append(
-            _serialize_trace_message(Message("user", [instruction]))
-        )
+        manager_call_messages.append(_serialize_trace_message(Message("user", [instruction])))
         current_conversation.append(Message("user", [instruction]))
 
         retry_attempts = self._retry_attempts
@@ -319,7 +335,9 @@ class TracedGroupChatOrchestrator(AgentBasedGroupChatOrchestrator):
                         "runtime_metadata": dict(self._runtime_metadata),
                         "call_input": {
                             "input_messages": manager_call_messages,
-                            "available_tools": list(self._prompt_snapshot.get("tool_summaries") or []),
+                            "available_tools": list(
+                                self._prompt_snapshot.get("tool_summaries") or []
+                            ),
                             "model": self._runtime_metadata.get("model"),
                             "backend": self._runtime_metadata.get("backend"),
                             "endpoint": self._runtime_metadata.get("endpoint"),
@@ -346,10 +364,14 @@ class TracedGroupChatOrchestrator(AgentBasedGroupChatOrchestrator):
                 current_conversation = [
                     Message(
                         "user",
-                        [f"Your input could not be parsed due to an error: {ex}. Please try again."],
+                        [
+                            f"Your input could not be parsed due to an error: {ex}. Please try again."
+                        ],
                     )
                 ]
-                manager_call_messages = [_serialize_trace_message(item) for item in current_conversation]
+                manager_call_messages = [
+                    _serialize_trace_message(item) for item in current_conversation
+                ]
 
 
 @dataclass(slots=True)
@@ -683,6 +705,7 @@ class AgentManager:
             },
         )
         try:
+
             def _run_group_chat_once(seed_messages: list[Message]):
                 local_workflow = self._build_work_group_chat_workflow(
                     message=message,
@@ -698,13 +721,20 @@ class AgentManager:
                         label="work_group_chat",
                     )
                 )
-                local_conversation = self._extract_group_chat_conversation(local_result, workflow=local_workflow)
+                local_conversation = self._extract_group_chat_conversation(
+                    local_result, workflow=local_workflow
+                )
                 local_slice = local_conversation
-                if len(local_conversation) >= len(seed_messages) and local_conversation[: len(seed_messages)] == seed_messages:
+                if (
+                    len(local_conversation) >= len(seed_messages)
+                    and local_conversation[: len(seed_messages)] == seed_messages
+                ):
                     local_slice = local_conversation[len(seed_messages) :]
-                local_completion_payload, local_visible_messages = self._split_group_chat_completion(
-                    conversation_slice=local_slice,
-                    participant_profiles=participant_profiles,
+                local_completion_payload, local_visible_messages = (
+                    self._split_group_chat_completion(
+                        conversation_slice=local_slice,
+                        participant_profiles=participant_profiles,
+                    )
                 )
                 return (
                     local_workflow,
@@ -726,15 +756,20 @@ class AgentManager:
             workflow, workflow_result, completion_payload, visible_messages = _run_group_chat_once(
                 seeded_conversation
             )
-            if not visible_messages and self._completion_payload_looks_like_missing_user_query_failure(completion_payload):
+            if (
+                not visible_messages
+                and self._completion_payload_looks_like_missing_user_query_failure(
+                    completion_payload
+                )
+            ):
                 sanitized_seed = []
                 if context_memo:
                     sanitized_seed.append(
                         Message("assistant", [context_memo], author_name="Chanakya")
                     )
                 sanitized_seed.append(Message("user", [message], author_name="User"))
-                workflow, workflow_result, completion_payload, visible_messages = _run_group_chat_once(
-                    sanitized_seed
+                workflow, workflow_result, completion_payload, visible_messages = (
+                    _run_group_chat_once(sanitized_seed)
                 )
                 seeded_conversation = sanitized_seed
             completion_payload = self._enforce_group_chat_completion_requirements(
@@ -810,7 +845,8 @@ class AgentManager:
                         "workflow_type": WORKFLOW_GROUP_CHAT,
                         "maf_pending_request_id": pending_request_id,
                         "maf_pending_prompt": str(completion_payload.get("question") or "").strip(),
-                        "maf_pending_reason": str(completion_payload.get("reason") or "").strip() or None,
+                        "maf_pending_reason": str(completion_payload.get("reason") or "").strip()
+                        or None,
                         "requesting_agent_id": completion_payload.get("requesting_agent_id"),
                         "requesting_agent_name": completion_payload.get("requesting_agent_name"),
                     }
@@ -830,7 +866,9 @@ class AgentManager:
                         "reason": str(completion_payload.get("reason") or "").strip() or None,
                         "requesting_agent_id": completion_payload.get("requesting_agent_id"),
                         "requesting_agent_name": completion_payload.get("requesting_agent_name"),
-                        "latest_synchronized_conversation_cursor": group_chat_state.get("latest_synchronized_conversation_cursor"),
+                        "latest_synchronized_conversation_cursor": group_chat_state.get(
+                            "latest_synchronized_conversation_cursor"
+                        ),
                     },
                 )
                 self._transition_task(
@@ -890,9 +928,7 @@ class AgentManager:
                 finished_at=finished_at,
                 result_json=completed_payload,
                 event_type=(
-                    "workflow_completed"
-                    if task_status == TASK_STATUS_DONE
-                    else "workflow_failed"
+                    "workflow_completed" if task_status == TASK_STATUS_DONE else "workflow_failed"
                 ),
                 event_payload={
                     "workflow_type": WORKFLOW_GROUP_CHAT,
@@ -924,7 +960,9 @@ class AgentManager:
         except Exception as exc:
             error_text = self._describe_exception(exc)
             finished_at = now_iso()
-            runtime_trace = None if workflow is None else getattr(workflow, "_chanakya_group_chat_trace", None)
+            runtime_trace = (
+                None if workflow is None else getattr(workflow, "_chanakya_group_chat_trace", None)
+            )
             failed_execution_trace = self.build_group_chat_execution_trace(
                 request_message=message,
                 participant_profiles=participant_profiles,
@@ -961,7 +999,9 @@ class AgentManager:
                 "pending_clarification_owner": None,
                 "manager_termination_state": {
                     "status": "failed",
-                    "termination_case": "transient_provider_failure" if "502" in error_text or "503" in error_text or "429" in error_text else "blocker_or_failure",
+                    "termination_case": "transient_provider_failure"
+                    if "502" in error_text or "503" in error_text or "429" in error_text
+                    else "blocker_or_failure",
                     "reason": error_text,
                     "summary": None,
                     "requesting_agent_id": None,
@@ -1200,7 +1240,8 @@ class AgentManager:
         if not summary_lines:
             return None
         return self._bounded_text(
-            "Earlier shared context summary:\n" + "\n".join(f"- {line}" for line in summary_lines[-4:]),
+            "Earlier shared context summary:\n"
+            + "\n".join(f"- {line}" for line in summary_lines[-4:]),
             limit=GROUP_CHAT_SUMMARY_CHAR_LIMIT,
         )
 
@@ -1220,9 +1261,7 @@ class AgentManager:
             visible_records = visible_records[-GROUP_CHAT_SEEDED_HISTORY_LIMIT:]
         seeded: list[Message] = []
         if compact_summary:
-            seeded.append(
-                Message("assistant", [compact_summary], author_name="Chanakya")
-            )
+            seeded.append(Message("assistant", [compact_summary], author_name="Chanakya"))
         for record in visible_records:
             role = str(record.get("role") or "assistant")
             content = self._bounded_text(str(record.get("content") or "").strip(), limit=1200)
@@ -1252,7 +1291,11 @@ class AgentManager:
 
     def _build_group_chat_work_context_memo(self, *, session_id: str, current_message: str) -> str:
         records = self.store.list_messages(session_id)
-        prior_records = records[:-1] if records and str(records[-1].get("content") or "").strip() == current_message.strip() else records
+        prior_records = (
+            records[:-1]
+            if records and str(records[-1].get("content") or "").strip() == current_message.strip()
+            else records
+        )
         recent_user_requests = [
             self._bounded_text(str(item.get("content") or "").strip(), limit=220)
             for item in prior_records
@@ -1262,7 +1305,9 @@ class AgentManager:
             {
                 "agent_name": (
                     str(dict(item.get("metadata") or {}).get("visible_agent_name") or "").strip()
-                    or str(dict(item.get("metadata") or {}).get("group_chat_agent_name") or "").strip()
+                    or str(
+                        dict(item.get("metadata") or {}).get("group_chat_agent_name") or ""
+                    ).strip()
                     or "Chanakya"
                 ),
                 "text": self._bounded_text(str(item.get("content") or "").strip(), limit=260),
@@ -1371,11 +1416,14 @@ class AgentManager:
         visible_messages: list[dict[str, Any]],
         completion_payload: dict[str, Any],
     ) -> str:
-        visible_block = "\n\n".join(
-            f"[{str(item.get('agent_name') or 'Agent')}] {str(item.get('text') or '').strip()}"
-            for item in visible_messages
-            if str(item.get("text") or "").strip()
-        ) or "<none>"
+        visible_block = (
+            "\n\n".join(
+                f"[{str(item.get('agent_name') or 'Agent')}] {str(item.get('text') or '').strip()}"
+                for item in visible_messages
+                if str(item.get("text") or "").strip()
+            )
+            or "<none>"
+        )
         payload_block = json.dumps(completion_payload, ensure_ascii=True, default=str)
         return (
             "You are adjudicating the final state of a multi-agent work run. Decide whether the user's request was actually satisfied based only on the evidence below.\n\n"
@@ -1428,7 +1476,9 @@ class AgentManager:
         return parsed
 
     @staticmethod
-    def _completion_payload_looks_like_missing_user_query_failure(completion_payload: dict[str, Any]) -> bool:
+    def _completion_payload_looks_like_missing_user_query_failure(
+        completion_payload: dict[str, Any],
+    ) -> bool:
         reason = str(completion_payload.get("reason") or "").strip().lower()
         return (
             "no user query found in messages" in reason
@@ -1522,9 +1572,15 @@ class AgentManager:
                 "summary": None,
             }
         missing_requirements: list[str] = []
-        if assessment.requirements.require_developer_implementation and not assessment.developer_implementation_seen:
+        if (
+            assessment.requirements.require_developer_implementation
+            and not assessment.developer_implementation_seen
+        ):
             missing_requirements.append("developer implementation turn")
-        if assessment.requirements.require_tester_validation and not assessment.tester_validation_seen:
+        if (
+            assessment.requirements.require_tester_validation
+            and not assessment.tester_validation_seen
+        ):
             missing_requirements.append("tester validation turn")
         if not missing_requirements:
             if assessment.role_conformance_issues:
@@ -1594,7 +1650,9 @@ class AgentManager:
             runtime_metadata=runtime_metadata,
             trace_store=trace_store,
         )
-        workflow_builder = WorkflowBuilder(start_executor=orchestrator, output_executors=[orchestrator])
+        workflow_builder = WorkflowBuilder(
+            start_executor=orchestrator, output_executors=[orchestrator]
+        )
         for participant in participant_executors:
             workflow_builder = workflow_builder.add_edge(orchestrator, participant)
             workflow_builder = workflow_builder.add_edge(participant, orchestrator)
@@ -1679,7 +1737,9 @@ class AgentManager:
                 "If you produced logs or reports, name the exact /workspace paths."
             ),
         }
-        return contracts.get(profile.role, "Return only the role-specific contribution needed for the next step.")
+        return contracts.get(
+            profile.role, "Return only the role-specific contribution needed for the next step."
+        )
 
     def _group_chat_role_boundary(self, profile: AgentProfileModel) -> str:
         boundaries = {
@@ -1705,7 +1765,9 @@ class AgentManager:
             else self._build_workspace_prompt_addendum_for_work_id(profile, work_id)
         )
         group_chat_addendum = self._build_group_chat_participant_addendum(profile)
-        return "\n\n".join(part for part in [group_chat_addendum, context_memo, prompt_addendum] if part)
+        return "\n\n".join(
+            part for part in [group_chat_addendum, context_memo, prompt_addendum] if part
+        )
 
     def _build_group_chat_orchestrator_agent(
         self,
@@ -1773,7 +1835,11 @@ class AgentManager:
             + ((context_memo + "\n\n") if context_memo else "")
             + "Participant roster and capabilities:\n"
             + "\n".join(capability_lines)
-            + ("\n\nCompletion requirements for this request:\n" + completion_rules_block if completion_rules_block else "")
+            + (
+                "\n\nCompletion requirements for this request:\n" + completion_rules_block
+                if completion_rules_block
+                else ""
+            )
             + "\n\nSelection rules:\n"
             + "1. Prefer the smallest number of turns needed for a correct result.\n"
             + "2. Pick agents whose capabilities match the current unresolved need.\n"
@@ -1898,14 +1964,20 @@ class AgentManager:
                         "shared_context_before": [
                             dict(item)
                             for item in (
-                                ((decision.get("call_input") or {}).get("input_messages") or [])[:-1]
-                                if isinstance((decision.get("call_input") or {}).get("input_messages"), list)
+                                ((decision.get("call_input") or {}).get("input_messages") or [])[
+                                    :-1
+                                ]
+                                if isinstance(
+                                    (decision.get("call_input") or {}).get("input_messages"), list
+                                )
                                 else []
                             )
                         ],
                         "manager_call_input": dict(decision.get("call_input") or {}),
                         "decision": {
-                            "action": "terminate" if payload.get("terminate") else "select_next_speaker",
+                            "action": "terminate"
+                            if payload.get("terminate")
+                            else "select_next_speaker",
                             "source": "runtime_traced",
                             **payload,
                         },
@@ -2056,11 +2128,15 @@ class AgentManager:
         if reason == GROUP_CHAT_MAX_ROUNDS_MESSAGE:
             status = "failed"
             normalized["termination_case"] = "max_rounds_reached"
-            normalized["reason"] = "Maximum group-chat rounds reached before the work could be completed."
+            normalized["reason"] = (
+                "Maximum group-chat rounds reached before the work could be completed."
+            )
         elif reason == GROUP_CHAT_TERMINATION_CONDITION_MESSAGE:
             status = "failed"
             normalized["termination_case"] = "termination_condition_met"
-            normalized["reason"] = "The group chat termination condition was met before a normal completion summary was produced."
+            normalized["reason"] = (
+                "The group chat termination condition was met before a normal completion summary was produced."
+            )
         elif status == "needs_user_input":
             normalized["termination_case"] = "clarification_required"
             if question and not normalized.get("summary"):
@@ -2094,10 +2170,16 @@ class AgentManager:
             if next_speaker:
                 last_selected_speaker = next_speaker
                 break
-        latest_turn_index = max((int(item.get("turn_index") or 0) for item in visible_messages), default=-1)
+        latest_turn_index = max(
+            (int(item.get("turn_index") or 0) for item in visible_messages), default=-1
+        )
         status = str(completion_payload.get("status") or "completed").strip() or "completed"
-        requesting_agent_id = str(completion_payload.get("requesting_agent_id") or "").strip() or None
-        requesting_agent_name = str(completion_payload.get("requesting_agent_name") or "").strip() or None
+        requesting_agent_id = (
+            str(completion_payload.get("requesting_agent_id") or "").strip() or None
+        )
+        requesting_agent_name = (
+            str(completion_payload.get("requesting_agent_name") or "").strip() or None
+        )
         return {
             "workflow_type": WORKFLOW_GROUP_CHAT,
             "manager_task_id": manager_task_id,
@@ -2180,8 +2262,12 @@ class AgentManager:
                         "workflow_type": WORKFLOW_GROUP_CHAT,
                         "round_index": decision.get("round_index"),
                         "selected_speaker": selected_name,
-                        "selected_agent_id": None if selected_profile is None else selected_profile.id,
-                        "selected_agent_role": None if selected_profile is None else selected_profile.role,
+                        "selected_agent_id": None
+                        if selected_profile is None
+                        else selected_profile.id,
+                        "selected_agent_role": None
+                        if selected_profile is None
+                        else selected_profile.role,
                         "selection_reason": payload.get("reason"),
                     },
                 )
@@ -2228,7 +2314,9 @@ class AgentManager:
             response_messages = _safe_response_messages(output)
             if response_messages and not terminal_response_messages:
                 terminal_response_messages = list(response_messages)
-        runtime_trace = None if workflow is None else getattr(workflow, "_chanakya_group_chat_trace", None)
+        runtime_trace = (
+            None if workflow is None else getattr(workflow, "_chanakya_group_chat_trace", None)
+        )
         if isinstance(runtime_trace, RuntimeGroupChatTrace):
             reconstructed: list[Message] = []
             for participant_call in runtime_trace.participant_calls:
@@ -2408,7 +2496,11 @@ class AgentManager:
             text = str(item.get("text") or "").strip()
             if text:
                 return text
-        return "The work conversation failed." if status != "completed" else "The work conversation completed."
+        return (
+            "The work conversation failed."
+            if status != "completed"
+            else "The work conversation completed."
+        )
         self.store.create_task_event(
             session_id=session_id,
             request_id=request_id,
@@ -5732,7 +5824,9 @@ class AgentManager:
         try:
             sandbox_workspace = str(resolve_shared_workspace(sandbox_work_id, create=False))
         except (ValueError, PermissionError):
-            sandbox_workspace = str(resolve_shared_workspace(CLASSIC_ARTIFACT_WORKSPACE_ID, create=False))
+            sandbox_workspace = str(
+                resolve_shared_workspace(CLASSIC_ARTIFACT_WORKSPACE_ID, create=False)
+            )
         lines = [
             f"Active work context: use work_id='{sandbox_work_id}'.",
             f"Shared workspace host path: {sandbox_workspace}",
