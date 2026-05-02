@@ -14,19 +14,17 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from flask import Flask
-from pytest import MonkeyPatch
-
 import chanakya.app as app_module
 from chanakya.agent.runtime import MAFRuntime, normalize_runtime_backend
-from chanakya.app import create_app, _parse_runtime_config_payload, _normalize_runtime_config
+from chanakya.app import _normalize_runtime_config, _parse_runtime_config_payload, create_app
 from chanakya.conversation_layer_support import get_conversation_preference_defaults
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.domain import ChatReply
 from chanakya.model import AgentProfileModel
-from chanakya.services import tool_loader
-from chanakya.store import ChanakyaStore
+from flask import Flask
+from pytest import MonkeyPatch
 
+from chanakya.services import tool_loader
 
 # ---------------------------------------------------------------------------
 # Shared helpers & stubs
@@ -260,10 +258,7 @@ def test_normalize_runtime_config_fills_defaults_for_none() -> None:
     assert config["backend"] == "local"
     assert config["model_id"] is None
     assert config["a2a_remote_agent"] is None
-    assert (
-        config["conversation_tone_instruction"]
-        == defaults["conversation_tone_instruction"]
-    )
+    assert config["conversation_tone_instruction"] == defaults["conversation_tone_instruction"]
     assert config["tts_instruction"] == defaults["tts_instruction"]
 
 

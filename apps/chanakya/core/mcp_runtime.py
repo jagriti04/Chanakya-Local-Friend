@@ -109,7 +109,9 @@ def extract_tool_execution_traces(response: Any, specs: list[Any]) -> list[ToolE
                 if call_id:
                     calls_by_id[str(call_id)] = {
                         "tool_id": _tool_spec_id(spec) if spec else (tool_id or "unknown_tool"),
-                        "tool_name": _tool_spec_name(spec, fallback=function_name) if spec else function_name,
+                        "tool_name": _tool_spec_name(spec, fallback=function_name)
+                        if spec
+                        else function_name,
                         "server_name": _tool_spec_server_name(spec) if spec else "unknown_server",
                         "input_payload": _stringify_payload(getattr(content, "arguments", None)),
                     }

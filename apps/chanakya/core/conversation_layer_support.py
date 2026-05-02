@@ -30,13 +30,10 @@ from conversation_layer.services.working_memory import (  # noqa: E402
     InMemoryResponseStateStore,
 )
 
-
 DEFAULT_CONVERSATION_TONE_INSTRUCTION = (
     "Use a natural, friendly, conversational tone that feels good in spoken dialogue."
 )
-DEFAULT_TTS_INSTRUCTION = (
-    "Make the text easy for TTS to read naturally. Use clear spoken phrasing and avoid awkward punctuation patterns."
-)
+DEFAULT_TTS_INSTRUCTION = "Make the text easy for TTS to read naturally. Use clear spoken phrasing and avoid awkward punctuation patterns."
 
 
 def get_conversation_preference_defaults() -> dict[str, str]:
@@ -173,11 +170,7 @@ class ConversationLayerSupport:
                             if conversation_tone_instruction
                             else {}
                         ),
-                        **(
-                            {"tts_instruction": tts_instruction}
-                            if tts_instruction
-                            else {}
-                        ),
+                        **({"tts_instruction": tts_instruction} if tts_instruction else {}),
                     },
                 },
             )

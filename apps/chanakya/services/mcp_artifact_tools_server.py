@@ -11,9 +11,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-from mcp.server.fastmcp import FastMCP
-from sqlalchemy.orm import Session, sessionmaker
-
 from chanakya.config import get_database_url
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.domain import make_id
@@ -23,6 +20,8 @@ from chanakya.services.mcp_feedback import (
 )
 from chanakya.services.sandbox_workspace import get_artifact_storage_root
 from chanakya.store import ChanakyaStore
+from mcp.server.fastmcp import FastMCP
+from sqlalchemy.orm import Session, sessionmaker
 
 _FILENAME_SANITIZE_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 
@@ -164,7 +163,9 @@ def _update_artifact(
             work_id=work_id,
         )
 
-    normalized_request_id = _normalize_optional(request_id) or artifact.latest_request_id or artifact.request_id
+    normalized_request_id = (
+        _normalize_optional(request_id) or artifact.latest_request_id or artifact.request_id
+    )
     normalized_session_id = _normalize_optional(session_id) or artifact.session_id
     normalized_work_id = _normalize_optional(work_id) if work_id is not None else artifact.work_id
     filename = _sanitize_filename(name or artifact.name)
@@ -395,7 +396,9 @@ def _build_artifact_tools_server() -> FastMCP:
         )
 
     @mcp.tool()
-    def list_artifacts(session_id: str = "", work_id: str = "", request_id: str = "") -> dict[str, Any]:
+    def list_artifacts(
+        session_id: str = "", work_id: str = "", request_id: str = ""
+    ) -> dict[str, Any]:
         """List artifacts for a session, work item, or request."""
 
         if work_id.strip():

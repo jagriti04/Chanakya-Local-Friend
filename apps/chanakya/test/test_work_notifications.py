@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.store import ChanakyaStore
 

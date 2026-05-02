@@ -6,7 +6,7 @@ import sys
 from datetime import date, datetime
 from decimal import Decimal
 
-from flask import Flask, redirect, render_template_string, request, url_for
+from flask import Flask, redirect, render_template_string, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import class_mapper, sessionmaker
 
@@ -15,23 +15,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from chanakya.config import get_database_url, load_local_env
 from chanakya.model import (
     Base,
-    AgentSessionContextModel,
-    AgentProfileModel,
-    ArtifactModel,
-    AppEventModel,
-    ChatMessageModel,
-    ChatSessionModel,
-    ClassicActiveWorkModel,
-    NotificationSettingsModel,
-    RequestModel,
-    RuntimeConfigModel,
-    TaskEventModel,
-    TaskModel,
-    TemporaryAgentModel,
-    ToolInvocationModel,
-    WorkAgentSessionModel,
-    WorkModel,
-    WorkNotificationModel,
 )
 
 
@@ -113,20 +96,20 @@ VIEWER_HTML = """
       nav { margin-bottom: 20px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
       nav a { text-decoration: none; color: #66b0ff; margin-right: 10px;}
       nav a:hover { text-decoration: underline; }
-      
+
       .action-bar { margin-bottom: 10px; padding: 10px; background: #252525; border: 1px solid #444; border-radius: 4px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
       .action-group { display: flex; gap: 10px; align-items: center; }
-      
+
       table { border-collapse: collapse; width: 100%; border: 1px solid #444; table-layout: fixed;}
       th, td { border: 1px solid #444; padding: 8px; text-align: left; vertical-align: top; max-width: 300px; word-wrap: break-word; overflow-x: auto; }
       th { background-color: #333; color: #fff; cursor: pointer; user-select: none; position: relative;}
       th:hover { background-color: #444; }
       th.sort-asc::after { content: " ▲"; color: #00C9FF; position: absolute; right: 5px; }
       th.sort-desc::after { content: " ▼"; color: #00C9FF; position: absolute; right: 5px; }
-      
+
       tr:nth-child(even) { background-color: #252525; }
       tr.selected { background-color: #3a4a5a !important; }
-      
+
       .btn { padding: 5px 15px; cursor: pointer; border-radius: 4px; border: none; font-weight: bold; text-decoration: none; display: inline-block; color: #222; background: #ccc;}
       .btn:hover { background: #ddd; }
       .btn-primary { background-color: #007bff; color: white; }
@@ -135,12 +118,12 @@ VIEWER_HTML = """
       .btn-danger:hover { background-color: #c9302c; }
       .btn-danger:disabled { background-color: #555; cursor: not-allowed; color: #888; }
       .btn:disabled, .btn.disabled { background-color: #555; cursor: not-allowed; color: #888; pointer-events: none; }
-      
+
       select, input { padding: 5px; border-radius: 4px; border: 1px solid #555; background: #333; color: white; }
-      
+
       pre { white-space: pre-wrap; margin: 0; font-size: 0.85em; max-height: 200px; overflow-y: auto;}
       input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
-      
+
       .pagination { display: flex; gap: 5px; align-items: center; }
     </style>
   </head>
@@ -152,7 +135,7 @@ VIEWER_HTML = """
             <a href="/db-viewer/{{ name }}" style="{% if name == current_model %}font-weight: bold; color: white; border-bottom: 2px solid #00C9FF;{% endif %}">{{ name }}</a>
         {% endfor %}
     </nav>
-    
+
     {% if current_model %}
         <h2>{{ current_model }}</h2>
         <p style="margin-top: 0; color: #b8b8b8;">
@@ -160,7 +143,7 @@ VIEWER_HTML = """
           <code>RequestModel</code>, <code>TaskModel</code>, <code>TaskEventModel</code>, <code>ToolInvocationModel</code>, <code>TemporaryAgentModel</code>, and <code>ArtifactModel</code>. Runtime configuration and work tracking live in
           <code>RuntimeConfigModel</code>, <code>WorkModel</code>, <code>WorkAgentSessionModel</code>, <code>ClassicActiveWorkModel</code>, and <code>WorkNotificationModel</code>.
         </p>
-        
+
         <div class="action-bar">
             <div class="action-group">
                 <span>Selected: <strong id="selected-count">0</strong></span>
@@ -169,10 +152,10 @@ VIEWER_HTML = """
                     <button type="submit" class="btn btn-danger" id="btn-delete-batch" disabled>Delete Selected</button>
                 </form>
             </div>
-            
+
             <div class="action-group pagination">
                 <form action="" method="get" id="limit-form">
-                    <label>Show: 
+                    <label>Show:
                         <select name="limit" onchange="document.getElementById('limit-form').submit()">
                             <option value="10" {% if limit == 10 %}selected{% endif %}>10</option>
                             <option value="25" {% if limit == 25 %}selected{% endif %}>25</option>
@@ -180,14 +163,14 @@ VIEWER_HTML = """
                             <option value="100" {% if limit == 100 %}selected{% endif %}>100</option>
                         </select>
                     </label>
-                    <input type="hidden" name="page" value="1"> 
+                    <input type="hidden" name="page" value="1">
                     <input type="hidden" name="session_id" value="{{ filters.session_id }}">
                     <input type="hidden" name="request_id" value="{{ filters.request_id }}">
                     <input type="hidden" name="agent_id" value="{{ filters.agent_id }}">
                 </form>
-                
+
                 <span>Total: {{ total_count }}</span>
-                
+
                 <form action="" method="get" style="display: inline-flex; align-items: center; gap: 5px;">
                     <input type="hidden" name="limit" value="{{ limit }}">
                     <input type="hidden" name="session_id" value="{{ filters.session_id }}">
@@ -196,7 +179,7 @@ VIEWER_HTML = """
                     <label>Page <input type="number" name="page" value="{{ page }}" min="1" max="{{ total_pages }}" style="width: 50px; text-align: center;"> of {{ total_pages }}</label>
                     <button type="submit" class="btn" style="padding: 2px 8px;">Go</button>
                 </form>
-                
+
                 <a href="{{ url_for('db_viewer', model_name=current_model, page=page-1, limit=limit, session_id=filters.session_id, request_id=filters.request_id, agent_id=filters.agent_id) }}" class="btn {% if page <= 1 %}disabled{% endif %}">Previous</a>
                 <a href="{{ url_for('db_viewer', model_name=current_model, page=page+1, limit=limit, session_id=filters.session_id, request_id=filters.request_id, agent_id=filters.agent_id) }}" class="btn {% if page >= total_pages %}disabled{% endif %}">Next</a>
             </div>
@@ -255,7 +238,7 @@ VIEWER_HTML = """
                 </tbody>
             </table>
         </div>
-        
+
         <script>
             let lastChecked = null;
             const checkboxes = document.querySelectorAll('.row-select');
@@ -268,23 +251,23 @@ VIEWER_HTML = """
                 if (e && e.shiftKey && lastChecked) {
                     let start = Array.from(checkboxes).indexOf(this);
                     let end = Array.from(checkboxes).indexOf(lastChecked);
-                    
+
                     const min = Math.min(start, end);
                     const max = Math.max(start, end);
-                    
+
                     for (let i = min; i <= max; i++) {
                         checkboxes[i].checked = lastChecked.checked;
                         updateRowStyle(checkboxes[i]);
                     }
                 }
-                
+
                 lastChecked = this;
                 if(e && e.target === selectAll) return;
-                
+
                 updateUI();
                 updateRowStyle(this);
             }
-            
+
             function updateRowStyle(box) {
                 const row = box.closest('tr');
                 if (box.checked) row.classList.add('selected');
@@ -316,10 +299,10 @@ VIEWER_HTML = """
                 });
                 updateUI();
             }
-            
+
             function rowClick(e, id) {
                 if(e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.tagName === 'INPUT' || e.target.tagName === "SELECT") return;
-                
+
                 const tr = e.currentTarget;
                 const cb = tr.querySelector('.row-select');
                 if(cb) {
@@ -333,7 +316,7 @@ VIEWER_HTML = """
             function updateUI() {
                 const checked = document.querySelectorAll('.row-select:checked');
                 const ids = Array.from(checked).map(cb => cb.value);
-                
+
                 countSpan.innerText = ids.length;
                 hiddenInput.value = ids.join(',');
                 deleteBtn.disabled = ids.length === 0;
@@ -345,23 +328,23 @@ VIEWER_HTML = """
                 table = document.getElementById("data-table");
                 switching = true;
                 dir = "asc";
-                
+
                 document.querySelectorAll('th').forEach(th => {
                     th.classList.remove('sort-asc', 'sort-desc');
                 });
-                
+
                 while (switching) {
                     switching = false;
                     rows = table.rows;
-                    
+
                     for (i = 1; i < (rows.length - 1); i++) {
                         shouldSwitch = false;
                         x = rows[i].getElementsByTagName("TD")[n];
                         y = rows[i + 1].getElementsByTagName("TD")[n];
-                        
+
                         var xContent = x.innerText.toLowerCase();
                         var yContent = y.innerText.toLowerCase();
-                        
+
                         var xNum = parseFloat(xContent);
                         var yNum = parseFloat(yContent);
                         if (!isNaN(xNum) && !isNaN(yNum)) {

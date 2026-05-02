@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import cast
 
 from agent_framework import Message
-
 from chanakya.agent.runtime import MAFRuntime
 from chanakya.chat_service import ChatService
 from chanakya.db import build_engine, build_session_factory, init_database
@@ -21,7 +20,6 @@ from chanakya.services.async_loop import run_in_maf_loop
 from chanakya.services.sandbox_workspace import (
     delete_shared_workspace,
     get_artifact_storage_root,
-    resolve_shared_workspace,
 )
 from chanakya.store import ChanakyaStore
 
@@ -512,7 +510,9 @@ def test_conversation_layer_receives_original_answer_when_artifact_exists() -> N
             artifact_root = get_artifact_storage_root(create=True)
             artifact_path = artifact_root / "artifact_conv" / "palindrome.py"
             artifact_path.parent.mkdir(parents=True, exist_ok=True)
-            artifact_path.write_text("def is_palindrome(n):\n    return str(n) == str(n)[::-1]\n", encoding="utf-8")
+            artifact_path.write_text(
+                "def is_palindrome(n):\n    return str(n) == str(n)[::-1]\n", encoding="utf-8"
+            )
             store.create_artifact(
                 artifact_id="artifact_conv",
                 request_id=request_id,
@@ -563,7 +563,10 @@ def test_conversation_layer_receives_original_answer_when_artifact_exists() -> N
     try:
         assert reply.artifacts
         assert layer.assistant_messages
-        assert layer.assistant_messages[0] == "I prepared the deliverable and can explain how it works."
+        assert (
+            layer.assistant_messages[0]
+            == "I prepared the deliverable and can explain how it works."
+        )
     finally:
         delete_shared_workspace(reply.request_id)
 
@@ -840,7 +843,10 @@ def test_chat_hides_raw_core_reply_when_conversation_layer_returns_passthrough()
     assert reply.metadata["conversation_layer_failed"] is True
     messages = store.list_messages("session_invalid_layer")
     assert messages[1]["route"] == "conversation_layer_error"
-    assert messages[1]["content"] == "I couldn't safely format that reply for classic chat just now. Please try again."
+    assert (
+        messages[1]["content"]
+        == "I couldn't safely format that reply for classic chat just now. Please try again."
+    )
     assert messages[1]["content"] != "reply:Explain recursion"
 
 

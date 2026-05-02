@@ -139,7 +139,8 @@ def _enrich_execution_trace_with_tool_invocations(
             {
                 "tool_id": str(item.get("tool_id") or "").strip() or "unknown_tool",
                 "tool_name": str(item.get("tool_name") or "").strip() or "unknown_tool",
-                "server_name": str(item.get("server_name") or "unknown_server").strip() or "unknown_server",
+                "server_name": str(item.get("server_name") or "unknown_server").strip()
+                or "unknown_server",
                 "status": str(item.get("status") or "unknown").strip() or "unknown",
                 "input_payload": json.dumps(item.get("input"), ensure_ascii=True, default=str)
                 if item.get("input")
@@ -573,9 +574,7 @@ def create_app() -> Flask:
             tts_instruction = None
         raw_message_metadata = payload.get("message_metadata")
         message_metadata = (
-            dict(raw_message_metadata)
-            if isinstance(raw_message_metadata, dict)
-            else None
+            dict(raw_message_metadata) if isinstance(raw_message_metadata, dict) else None
         )
         debug_log(
             "api_chat_request",
@@ -1161,8 +1160,7 @@ def create_app() -> Flask:
             message = str(exc.args[0]) if exc.args else str(exc)
             return jsonify({"error": message}), 404
         artifacts = [
-            _serialize_artifact_payload(item)
-            for item in store.list_artifacts_for_work(work_id)
+            _serialize_artifact_payload(item) for item in store.list_artifacts_for_work(work_id)
         ]
         return jsonify({"work_id": work_id, "artifacts": artifacts})
 
@@ -1610,11 +1608,15 @@ def create_app() -> Flask:
                     "user_message": request_message,
                     "root_task_id": request_record.get("root_task_id"),
                     "manager_task_id": manager_task.get("id"),
-                    "child_task_ids": manager_result.get("child_task_ids") if isinstance(manager_result, dict) else [],
+                    "child_task_ids": manager_result.get("child_task_ids")
+                    if isinstance(manager_result, dict)
+                    else [],
                     "execution_trace": execution_trace,
                 }
             )
-        latest_root_task = next((item for item in reversed(task_records) if item.get("is_root")), None)
+        latest_root_task = next(
+            (item for item in reversed(task_records) if item.get("is_root")), None
+        )
         active_runtime: dict[str, Any] | None = None
         if latest_root_task is not None:
             latest_input = dict(latest_root_task.get("input") or {})
@@ -1629,9 +1631,7 @@ def create_app() -> Flask:
                 "request_id": latest_root_task.get("request_id"),
                 "task_status": latest_root_task.get("status"),
                 "workflow_type": (
-                    None
-                    if group_chat_state is None
-                    else group_chat_state.get("workflow_type")
+                    None if group_chat_state is None else group_chat_state.get("workflow_type")
                 ),
                 "pending_interaction": pending_interaction,
                 "group_chat_state": group_chat_state,
@@ -1918,9 +1918,7 @@ def _validate_agent_tool_ids(tool_ids: list[str]) -> None:
         return
     unknown = [tool_id for tool_id in tool_ids if tool_id not in configured_tool_ids]
     if unknown:
-        raise ValueError(
-            "Unknown tool_ids: " + ", ".join(sorted(dict.fromkeys(unknown)))
-        )
+        raise ValueError("Unknown tool_ids: " + ", ".join(sorted(dict.fromkeys(unknown))))
 
 
 def _extract_mcp_servers(data: Any) -> dict[str, Any]:

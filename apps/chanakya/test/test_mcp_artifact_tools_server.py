@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from chanakya.db import build_engine, build_session_factory, init_database
-from chanakya.services import sandbox_workspace
 from chanakya.services.mcp_artifact_tools_server import (
     _create_artifact,
     _delete_artifact,
@@ -11,6 +10,8 @@ from chanakya.services.mcp_artifact_tools_server import (
     _update_artifact,
 )
 from chanakya.store import ChanakyaStore
+
+from chanakya.services import sandbox_workspace
 
 
 def _build_store() -> ChanakyaStore:
@@ -48,7 +49,9 @@ def test_create_artifact_writes_file_and_registers_record(monkeypatch, tmp_path:
     assert artifact_file.read_text(encoding="utf-8") == "print('hello')\n"
 
 
-def test_update_artifact_rewrites_content_and_tracks_latest_request(monkeypatch, tmp_path: Path) -> None:
+def test_update_artifact_rewrites_content_and_tracks_latest_request(
+    monkeypatch, tmp_path: Path
+) -> None:
     monkeypatch.setattr(sandbox_workspace, "get_data_dir", lambda: tmp_path)
     store = _build_store()
     store.ensure_session("session_artifact_tool", title="Artifact Tool")
@@ -87,7 +90,9 @@ def test_update_artifact_rewrites_content_and_tracks_latest_request(monkeypatch,
     assert artifact_file.read_text(encoding="utf-8") == "beta\n"
 
 
-def test_artifact_preserves_origin_request_when_updated_in_later_request(monkeypatch, tmp_path: Path) -> None:
+def test_artifact_preserves_origin_request_when_updated_in_later_request(
+    monkeypatch, tmp_path: Path
+) -> None:
     monkeypatch.setattr(sandbox_workspace, "get_data_dir", lambda: tmp_path)
     store = _build_store()
     store.ensure_session("session_artifact_tool", title="Artifact Tool")

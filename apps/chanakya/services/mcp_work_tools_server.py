@@ -7,12 +7,9 @@ send messages into work sessions, and read pending notifications
 
 from __future__ import annotations
 
-from pathlib import Path
 import threading
+from pathlib import Path
 from typing import Any
-
-from mcp.server.fastmcp import FastMCP
-from sqlalchemy.orm import Session, sessionmaker
 
 from chanakya.agent.runtime import MAFRuntime
 from chanakya.agent_manager import AgentManager
@@ -27,6 +24,8 @@ from chanakya.services.mcp_feedback import (
     build_wrong_id_payload,
 )
 from chanakya.store import ChanakyaStore
+from mcp.server.fastmcp import FastMCP
+from sqlalchemy.orm import Session, sessionmaker
 
 
 def _build_store() -> tuple[ChanakyaStore, sessionmaker[Session]]:
@@ -245,7 +244,9 @@ def _build_work_tools_server() -> FastMCP:
     chat_service = _build_chat_service(store, session_factory)
 
     @mcp.tool()
-    def create_work_with_message(title: str, description: str = "", message: str = "") -> dict[str, Any]:
+    def create_work_with_message(
+        title: str, description: str = "", message: str = ""
+    ) -> dict[str, Any]:
         """Create a new work item and send the initial user request to it.
 
         Use this when the user explicitly asks to create or start a new work

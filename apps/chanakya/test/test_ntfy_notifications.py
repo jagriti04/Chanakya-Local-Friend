@@ -3,14 +3,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from flask import Flask
-from pytest import MonkeyPatch
-
 import chanakya.app as app_module
 from chanakya.agent.runtime import RunResult
 from chanakya.app import create_app
-from chanakya.services import tool_loader
 from chanakya.services.ntfy import NtfyPublishResult
+from flask import Flask
+from pytest import MonkeyPatch
+
+from chanakya.services import tool_loader
 
 
 class _RuntimeStub:
