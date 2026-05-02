@@ -108,7 +108,7 @@ def get_air_status_url() -> str:
 
 
 def get_data_dir() -> Path:
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[3]
     data_dir = root / "chanakya_data"
     data_dir.mkdir(parents=True, exist_ok=True)
     return data_dir

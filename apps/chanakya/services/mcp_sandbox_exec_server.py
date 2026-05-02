@@ -24,7 +24,7 @@ SANDBOX_IMAGE = (
     or os.getenv("CHANAKYA_SANDBOX_PYTHON_IMAGE")
     or "chanakya-sandbox:latest"
 )
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_IMAGE_DOCKERFILE = REPO_ROOT / "docker" / "chanakya-sandbox.Dockerfile"
 
 mcp = FastMCP("Chanakya Sandbox Executor", json_response=True)

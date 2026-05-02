@@ -339,7 +339,11 @@ event_bus = _EventBus()
 
 def create_app() -> Flask:
     load_local_env()
-    app = Flask(__name__, template_folder=str(BASE_DIR / "chanakya" / "templates"))
+    app = Flask(
+        __name__,
+        template_folder=str(BASE_DIR / "templates"),
+        static_folder=str(BASE_DIR / "static"),
+    )
 
     data_dir = get_data_dir()
     database_url = get_database_url()
@@ -350,7 +354,7 @@ def create_app() -> Flask:
     init_database(engine)
     session_factory = build_session_factory(engine)
     store = ChanakyaStore(session_factory)
-    load_agent_seeds(store, BASE_DIR / "chanakya" / "seeds" / "agents.json")
+    load_agent_seeds(store, BASE_DIR / "seeds" / "agents.json")
     sync_default_agent_tools(store)
     ensure_heartbeat_files(store, BASE_DIR)
     get_shared_workspace_root()
@@ -367,7 +371,7 @@ def create_app() -> Flask:
             "base_dir": str(BASE_DIR),
             "data_dir": str(data_dir),
             "database_url": database_url,
-            "seed_file": str(BASE_DIR / "chanakya" / "seeds" / "agents.json"),
+            "seed_file": str(BASE_DIR / "seeds" / "agents.json"),
             "agent_count": len(store.list_agent_profiles()),
         },
     )

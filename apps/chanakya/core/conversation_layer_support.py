@@ -10,8 +10,8 @@ from chanakya.config import get_a2a_agent_url, get_conversation_openai_config
 
 
 def _ensure_conversation_layer_import_path() -> None:
-    root = Path(__file__).resolve().parents[1]
-    package_root = root / "chanakya_conversation_layer"
+    root = Path(__file__).resolve().parents[3]
+    package_root = root / "apps" / "chanakya_conversation_layer"
     package_root_str = str(package_root)
     if package_root.exists() and package_root_str not in sys.path:
         sys.path.insert(0, package_root_str)

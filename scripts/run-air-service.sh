@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-AIR_DIR="$ROOT_DIR/AI-Router-AIR"
+AIR_DIR="$ROOT_DIR/apps/AI-Router-AIR"
 PYTHON_BIN="$ROOT_DIR/.venv/bin/python"
 ROOT_ENV_FILE="${ENV_FILE_PATH:-$ROOT_DIR/.env}"
 

@@ -2,9 +2,9 @@
 
 ## Workspace Shape
 
-- Primary app is `chanakya/`. Most active product work, tests, and Flask routes live there.
-- `AI-Router-AIR/` is a separate FastAPI service used by the local stack on `:5512`.
-- `chanakya_conversation_layer/` is a separate prototype package with its own `pyproject.toml` and tests; do not assume its commands or Python version match the root package.
+- Primary app is `apps/chanakya/`. Most active product work, tests, and Flask routes live there.
+- `apps/AI-Router-AIR/` is a separate FastAPI service used by the local stack on `:5512`.
+- `apps/chanakya_conversation_layer/` is a separate prototype package with its own `pyproject.toml` and tests; do not assume its commands or Python version match the root package.
 
 ## Startup / Runtime
 
@@ -17,39 +17,39 @@
 
 ## Environment / Setup
 
-- Root package expects Python `>=3.10`; `chanakya_conversation_layer/` expects `>=3.11`.
+- Root package expects Python `>=3.10`; `apps/chanakya_conversation_layer/` expects `>=3.11`.
 - Default local setup in docs uses a repo-root `.venv`:
   - `python3.11 -m venv .venv`
   - `source .venv/bin/activate`
   - `python -m pip install -e .[dev]`
-  - `python -m pip install -e ./AI-Router-AIR`
-  - `python -m pip install -e ./chanakya_conversation_layer`
+  - `python -m pip install -e ./apps/AI-Router-AIR`
+  - `python -m pip install -e ./apps/chanakya_conversation_layer`
 - Conda is still acceptable for local development, but the `systemd` installer expects a repo-root `.venv`.
 - Local runtime config is expected in root `.env` and `mcp_config_file.json`; create them from `.env.example` and `mcp_config_file.example.json` before startup.
 
 ## Verification Commands
 
 - Root app checks (run from repo root):
-  - `python -m ruff check chanakya/`
-  - `python -m mypy chanakya/`
-  - `pytest chanakya/test`
-- Root pytest is already scoped to `chanakya/test` by `pyproject.toml`; use focused runs like `pytest chanakya/test/test_agent_manager.py -q`.
-- `AI-Router-AIR/` has its own pytest config under `AI-Router-AIR/tests`.
-- `chanakya_conversation_layer/` has its own pytest config under `chanakya_conversation_layer/tests`.
+  - `python -m ruff check apps/chanakya/`
+  - `python -m mypy apps/chanakya/`
+  - `pytest apps/chanakya/test`
+- Root pytest is already scoped to `apps/chanakya/test` by `pyproject.toml`; use focused runs like `pytest apps/chanakya/test/test_agent_manager.py -q`.
+- `apps/AI-Router-AIR/` has its own pytest config under `apps/AI-Router-AIR/tests`.
+- `apps/chanakya_conversation_layer/` has its own pytest config under `apps/chanakya_conversation_layer/tests`.
 
 ## Repo-Specific Gotchas
 
-- `chanakya/seed.py` always refreshes seeded agent profiles on load. Editing `chanakya/seeds/agents.json` updates existing DB rows for matching seeded profiles; current behavior is overwrite, not merge, while preserving each profile's original `created_at`.
+- `apps/chanakya/core/seed.py` always refreshes seeded agent profiles on load. Editing `apps/chanakya/seeds/agents.json` updates existing DB rows for matching seeded profiles; current behavior is overwrite, not merge, while preserving each profile's original `created_at`.
 - `chanakya_data/` is runtime state, not source of truth. It contains the SQLite DB and shared sandbox workspace and is ignored by git.
 - Sandboxed code execution writes only under `chanakya_data/shared_workspace/`; host project files may be mounted read-only.
 
 ## Architecture Shortcuts
 
-- Main Flask app factory and startup wiring: `chanakya/app.py`.
-- Chat orchestration and classic/delegated routing: `chanakya/chat_service.py`.
-- Persistence layer and task/session/work records: `chanakya/store.py`.
-- MAF runtime integration: `chanakya/agent/runtime.py`.
-- Main classic/work UI is in `chanakya/templates/`; shared voice logic is in `chanakya/static/js/air_voice.js`.
+- Main Flask app factory and startup wiring: `apps/chanakya/core/app.py`.
+- Chat orchestration and classic/delegated routing: `apps/chanakya/core/chat_service.py`.
+- Persistence layer and task/session/work records: `apps/chanakya/core/store.py`.
+- MAF runtime integration: `apps/chanakya/agent/runtime.py`.
+- Main classic/work UI is in `apps/chanakya/templates/`; shared voice logic is in `apps/chanakya/static/js/air_voice.js`.
 
 ## When Editing Behavior
 
