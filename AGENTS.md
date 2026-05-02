@@ -39,15 +39,15 @@
 
 ## Repo-Specific Gotchas
 
-- `apps/chanakya/seed.py` always refreshes seeded agent profiles on load. Editing `apps/chanakya/seeds/agents.json` updates existing DB rows for matching seeded profiles; current behavior is overwrite, not merge, while preserving each profile's original `created_at`.
+- `apps/chanakya/core/seed.py` always refreshes seeded agent profiles on load. Editing `apps/chanakya/seeds/agents.json` updates existing DB rows for matching seeded profiles; current behavior is overwrite, not merge, while preserving each profile's original `created_at`.
 - `chanakya_data/` is runtime state, not source of truth. It contains the SQLite DB and shared sandbox workspace and is ignored by git.
 - Sandboxed code execution writes only under `chanakya_data/shared_workspace/`; host project files may be mounted read-only.
 
 ## Architecture Shortcuts
 
-- Main Flask app factory and startup wiring: `apps/chanakya/app.py`.
-- Chat orchestration and classic/delegated routing: `apps/chanakya/chat_service.py`.
-- Persistence layer and task/session/work records: `apps/chanakya/store.py`.
+- Main Flask app factory and startup wiring: `apps/chanakya/core/app.py`.
+- Chat orchestration and classic/delegated routing: `apps/chanakya/core/chat_service.py`.
+- Persistence layer and task/session/work records: `apps/chanakya/core/store.py`.
 - MAF runtime integration: `apps/chanakya/agent/runtime.py`.
 - Main classic/work UI is in `apps/chanakya/templates/`; shared voice logic is in `apps/chanakya/static/js/air_voice.js`.
 

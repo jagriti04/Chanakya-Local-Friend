@@ -5823,12 +5823,12 @@ class AgentManager:
                 profile,
                 usage_text=prompt,
                 prompt_addendum=self._build_active_workspace_prompt_addendum(profile),
-                repo_root=Path(__file__).resolve().parents[1],
+                repo_root=Path(__file__).resolve().parents[3],
             ).system_prompt
         else:
             system_prompt = load_agent_prompt(
                 profile,
-                repo_root=Path(__file__).resolve().parents[1],
+                repo_root=Path(__file__).resolve().parents[3],
                 usage_text=prompt,
             )
         user_prompt = self._build_a2a_user_prompt(system_prompt=system_prompt, prompt=prompt)
@@ -5896,7 +5896,7 @@ class AgentManager:
                 use_work_session=False,
                 tools_enabled=False,
             )
-        repo_root = Path(__file__).resolve().parents[1]
+        repo_root = Path(__file__).resolve().parents[3]
         agent = Agent(
             client=self._resolve_client(),
             name=profile.name,

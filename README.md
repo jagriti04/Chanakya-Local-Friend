@@ -236,9 +236,9 @@ This workspace contains a few related codebases. The main ones are:
 
 If you are changing runtime behavior, the most relevant files are usually:
 
-- `apps/chanakya/app.py`
-- `apps/chanakya/chat_service.py`
-- `apps/chanakya/store.py`
+- `apps/chanakya/core/app.py`
+- `apps/chanakya/core/chat_service.py`
+- `apps/chanakya/core/store.py`
 - `apps/chanakya/agent/runtime.py`
 - `apps/chanakya/templates/`
 - `apps/chanakya/static/js/air_voice.js`
