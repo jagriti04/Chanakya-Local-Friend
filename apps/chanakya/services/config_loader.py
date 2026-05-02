@@ -9,7 +9,7 @@ def _resolve_mcp_config_path() -> Path:
     """Find mcp_config_file.json relative to the project layout."""
     candidates = [
         # Repo root when running this package from source.
-        Path(__file__).resolve().parents[2] / "mcp_config_file.json",
+        Path(__file__).resolve().parents[3] / "mcp_config_file.json",
         # Current working directory fallback.
         Path.cwd() / "mcp_config_file.json",
     ]

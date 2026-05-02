@@ -14,7 +14,7 @@ from chanakya.config import get_data_dir
 from chanakya.services.mcp_feedback import build_recovery_payload
 from chanakya.services.sandbox_workspace import CLASSIC_ARTIFACT_WORKSPACE_ID, resolve_shared_workspace
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 MAX_TEXT_CHARS = 20000
 MAX_HTTP_BODY_CHARS = 50000
 MAX_WEATHER_BODY_CHARS = 12000

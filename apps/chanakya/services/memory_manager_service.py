@@ -51,7 +51,7 @@ class MemoryManagerService:
         self.store = store
         configured_owner = str(owner_id or get_long_term_memory_default_owner_id()).strip()
         self.owner_id = configured_owner or "default_user"
-        self._repo_root = Path(__file__).resolve().parents[2]
+        self._repo_root = Path(__file__).resolve().parents[3]
 
     def process_request_turn(self, *, session_id: str, request_id: str) -> MemoryManagerResult:
         messages = self.store.list_messages_for_request(request_id)

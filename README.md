@@ -27,8 +27,8 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e .[dev]
-python -m pip install -e ./AI-Router-AIR
-python -m pip install -e ./chanakya_conversation_layer
+python -m pip install -e ./apps/AI-Router-AIR
+python -m pip install -e ./apps/chanakya_conversation_layer
 ```
 
 If you prefer conda for day-to-day development, that is still fine. The only hard requirement is that the `systemd` installer expects a repo-root `.venv`.
@@ -152,15 +152,15 @@ If you add or remove MCP servers, restart the stack afterward so the tool loader
 From the repo root with the environment activated:
 
 ```bash
-pytest chanakya/test
-python -m ruff check chanakya/
-python -m mypy chanakya/
+pytest apps/chanakya/test
+python -m ruff check apps/chanakya/
+python -m mypy apps/chanakya/
 ```
 
 For a focused test run:
 
 ```bash
-pytest chanakya/test/test_agent_manager.py -q
+pytest apps/chanakya/test/test_agent_manager.py -q
 ```
 
 ### Database utilities
@@ -229,19 +229,19 @@ sudo ./scripts/uninstall-autostart-ubuntu.sh
 
 This workspace contains a few related codebases. The main ones are:
 
-- `chanakya/`: primary Flask app, routes, templates, core state, tests
-- `AI-Router-AIR/`: FastAPI service used by the local stack on port 5512
-- `chanakya_conversation_layer/`: separate conversation-layer package and tests
+- `apps/chanakya/`: primary Flask app, routes, templates, core state, tests
+- `apps/AI-Router-AIR/`: FastAPI service used by the local stack on port 5512
+- `apps/chanakya_conversation_layer/`: separate conversation-layer package and tests
 - `scripts/`: startup, shutdown, database, and service-management scripts
 
 If you are changing runtime behavior, the most relevant files are usually:
 
-- `chanakya/app.py`
-- `chanakya/chat_service.py`
-- `chanakya/store.py`
-- `chanakya/agent/runtime.py`
-- `chanakya/templates/`
-- `chanakya/static/js/air_voice.js`
+- `apps/chanakya/core/app.py`
+- `apps/chanakya/core/chat_service.py`
+- `apps/chanakya/core/store.py`
+- `apps/chanakya/agent/runtime.py`
+- `apps/chanakya/templates/`
+- `apps/chanakya/static/js/air_voice.js`
 
 ## Common Problems
 

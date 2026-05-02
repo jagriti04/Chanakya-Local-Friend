@@ -7,7 +7,7 @@ import sys
 
 from sqlalchemy import create_engine
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "apps")))
 
 from chanakya.config import get_database_url, load_local_env
 from chanakya.model import Base

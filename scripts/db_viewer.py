@@ -10,7 +10,7 @@ from flask import Flask, redirect, render_template_string, request, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.orm import class_mapper, sessionmaker
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "apps")))
 
 from chanakya.config import get_database_url, load_local_env
 from chanakya.model import (

@@ -42,8 +42,8 @@ def _ensure_agent_profiles(store: ChanakyaStore) -> None:
         store.get_agent_profile("agent_manager")
         return
     except KeyError:
-        repo_root = Path(__file__).resolve().parents[2]
-        load_agent_seeds(store, repo_root / "chanakya" / "seeds" / "agents.json")
+        repo_root = Path(__file__).resolve().parents[3]
+        load_agent_seeds(store, repo_root / "apps" / "chanakya" / "seeds" / "agents.json")
 
 
 def _build_chat_service(
