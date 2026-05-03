@@ -1,5 +1,7 @@
 """FastAPI client application serving the AIR test frontend."""
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -7,12 +9,13 @@ from client.config import settings
 import uvicorn
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
+BASE_DIR = Path(__file__).resolve().parent
 
 # Templates
-templates = Jinja2Templates(directory="client/templates")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # Mount Static
-app.mount("/static", StaticFiles(directory="client/static"), name="static")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 @app.get("/")
 async def client_root(request: Request):

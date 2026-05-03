@@ -144,9 +144,12 @@ def _patch_executor_shell_support() -> None:
         legacy_line = "        if '|' in command or '>' in command or '<' in command:\n            use_shell = True\n"
         patched = patched.replace(legacy_line, new_block, 1)
     old_sound_line = """                sound_cmd = 'paplay /usr/share/sounds/freedesktop/stereo/message.oga'\n                \n                # Chain commands together\n                command = f'{notify_cmd} && {sound_cmd}'\n"""
+    legacy_sound_line = """                sound_cmd = 'paplay /usr/share/sounds/freedesktop/stereo/message.oga'\n\n                # Chain commands together\n                command = f'{notify_cmd} && {sound_cmd}'\n"""
     new_sound_line = """                sound_cmd = 'paplay /usr/share/sounds/freedesktop/stereo/message.oga'\n                optional_sound_cmd = (\n                    'if command -v paplay >/dev/null 2>&1; '\n                    f'then {sound_cmd}; '\n                    'fi'\n                )\n                \n                # Show the notification even when optional sound support is unavailable\n                command = f'{notify_cmd}; {optional_sound_cmd}'\n"""
     if old_sound_line in patched:
         patched = patched.replace(old_sound_line, new_sound_line, 1)
+    elif legacy_sound_line in patched:
+        patched = patched.replace(legacy_sound_line, new_sound_line, 1)
     if patched != original:
         EXECUTOR_FILE.write_text(patched, encoding="utf-8")
 

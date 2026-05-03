@@ -123,11 +123,10 @@ def test_patch_executor_shell_support_makes_sound_optional(
 ) -> None:
     executor_file = tmp_path / "executor.py"
     executor_file.write_text(
-        """                sound_cmd = 'paplay /usr/share/sounds/freedesktop/stereo/message.oga'
-
-                # Chain commands together
-                command = f'{notify_cmd} && {sound_cmd}'
-""",
+        "                sound_cmd = 'paplay /usr/share/sounds/freedesktop/stereo/message.oga'\n"
+        "                \n"
+        "                # Chain commands together\n"
+        "                command = f'{notify_cmd} && {sound_cmd}'\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(launcher, "EXECUTOR_FILE", executor_file)

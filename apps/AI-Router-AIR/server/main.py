@@ -1,6 +1,7 @@
 """FastAPI entrypoint for the AIR server and dashboard views."""
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -19,8 +20,10 @@ app = FastAPI(
     title="AI Router (AIR)", description="Unified API for LLM, STT, and TTS", version="0.1.0"
 )
 
+BASE_DIR = Path(__file__).resolve().parent
+
 # Templates
-templates = Jinja2Templates(directory="server/templates")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # CORS configuration
 origins = ["*"]  # Allow all origins for now, can be restricted later
@@ -38,7 +41,7 @@ app.add_exception_handler(Exception, global_exception_handler)
 app.include_router(api_router.router)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="server/static"), name="static")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 
 @app.on_event("startup")
