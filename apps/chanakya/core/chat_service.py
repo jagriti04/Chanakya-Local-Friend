@@ -1458,7 +1458,10 @@ class ChatService:
         self.store.update_task(root_task_id, input_json=root_input)
 
     def _clear_root_pending_interaction(self, root_task_id: str) -> None:
-        root_task = self.store.get_task(root_task_id)
+        try:
+            root_task = self.store.get_task(root_task_id)
+        except KeyError:
+            return
         root_input = dict(root_task.input_json or {})
         pending = dict(root_input.get(_WORK_PENDING_INTERACTION_KEY) or {})
         if not pending:
@@ -1475,7 +1478,10 @@ class ChatService:
     def _set_root_group_chat_state(self, root_task_id: str, state: dict[str, Any] | None) -> None:
         if not isinstance(state, dict):
             return
-        root_task = self.store.get_task(root_task_id)
+        try:
+            root_task = self.store.get_task(root_task_id)
+        except KeyError:
+            return
         root_input = dict(root_task.input_json or {})
         root_input[_WORK_GROUP_CHAT_STATE_KEY] = dict(state)
         self.store.update_task(root_task_id, input_json=root_input)
