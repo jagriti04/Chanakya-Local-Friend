@@ -7,7 +7,6 @@ from time import perf_counter
 from typing import Any
 
 from agent_framework import Message
-
 from chanakya.agent.runtime import MAFRuntime, build_profile_agent, create_openai_chat_client
 from chanakya.config import get_long_term_memory_default_owner_id
 from chanakya.debug import debug_log
@@ -230,7 +229,9 @@ class MemoryManagerService:
 
     def _parse_manager_result(self, raw: str) -> MemoryManagerResult:
         payload = self._extract_json_object(raw)
-        operations = payload.get("operations") if isinstance(payload.get("operations"), list) else []
+        operations = (
+            payload.get("operations") if isinstance(payload.get("operations"), list) else []
+        )
         normalized_ops: list[dict[str, Any]] = []
         for item in operations:
             if not isinstance(item, dict):
@@ -268,7 +269,9 @@ class MemoryManagerService:
         request_id: str | None,
         source_messages: list[dict[str, Any]],
     ) -> None:
-        source_message_ids = [str(item.get("id") or "") for item in source_messages if item.get("id")]
+        source_message_ids = [
+            str(item.get("id") or "") for item in source_messages if item.get("id")
+        ]
         source_request_ids = [request_id] if request_id else []
         self.store.create_memory_event(
             owner_id=self.owner_id,
@@ -342,7 +345,14 @@ class MemoryManagerService:
                         event_type="memory_update_skipped",
                         payload={
                             "reason": "missing required fields",
-                            "missing": [field_name for field_name, field_value in (("subject", subject), ("content", content)) if not field_value],
+                            "missing": [
+                                field_name
+                                for field_name, field_value in (
+                                    ("subject", subject),
+                                    ("content", content),
+                                )
+                                if not field_value
+                            ],
                         },
                     )
                     continue
@@ -514,7 +524,9 @@ class MemoryManagerService:
             )
             return updated, "merged_duplicate_add"
 
-        prior = self._find_subject_type_active_match(active, subject=subject, memory_type=memory_type)
+        prior = self._find_subject_type_active_match(
+            active, subject=subject, memory_type=memory_type
+        )
         if prior is not None:
             self.store.update_memory(str(prior.get("id") or ""), status="superseded")
             record = self.store.create_memory(
@@ -592,10 +604,14 @@ class MemoryManagerService:
             session_id=session_id,
             limit=200,
         )
-        exact = self._find_exact_active_match(active, subject=subject, memory_type=memory_type, content=content)
+        exact = self._find_exact_active_match(
+            active, subject=subject, memory_type=memory_type, content=content
+        )
         if exact is not None:
             return str(exact.get("id") or "") or None
-        by_subject = self._find_subject_type_active_match(active, subject=subject, memory_type=memory_type)
+        by_subject = self._find_subject_type_active_match(
+            active, subject=subject, memory_type=memory_type
+        )
         if by_subject is not None:
             return str(by_subject.get("id") or "") or None
         return None
@@ -616,9 +632,15 @@ class MemoryManagerService:
                 continue
             if MemoryManagerService._normalize_text(str(item.get("type") or "")) != normalized_type:
                 continue
-            if MemoryManagerService._normalize_text(str(item.get("subject") or "")) != normalized_subject:
+            if (
+                MemoryManagerService._normalize_text(str(item.get("subject") or ""))
+                != normalized_subject
+            ):
                 continue
-            if MemoryManagerService._normalize_text(str(item.get("content") or "")) != normalized_content:
+            if (
+                MemoryManagerService._normalize_text(str(item.get("content") or ""))
+                != normalized_content
+            ):
                 continue
             return item
         return None
@@ -637,7 +659,10 @@ class MemoryManagerService:
                 continue
             if MemoryManagerService._normalize_text(str(item.get("type") or "")) != normalized_type:
                 continue
-            if MemoryManagerService._normalize_text(str(item.get("subject") or "")) != normalized_subject:
+            if (
+                MemoryManagerService._normalize_text(str(item.get("subject") or ""))
+                != normalized_subject
+            ):
                 continue
             return item
         return None
@@ -720,7 +745,9 @@ class MemoryManagerService:
         return " ".join(str(text or "").replace("\x00", " ").strip().lower().split())
 
 
-def run_memory_manager_update_job(store: ChanakyaStore, *, session_id: str, request_id: str) -> None:
+def run_memory_manager_update_job(
+    store: ChanakyaStore, *, session_id: str, request_id: str
+) -> None:
     service = MemoryManagerService(store)
     started_at = now_iso()
     started_clock = perf_counter()

@@ -148,7 +148,9 @@ def test_chat_service_injects_relevant_long_term_memory_into_prompt_addendum() -
     assert "Microsoft Agent Framework" in runtime.last_prompt_addendum
 
 
-def test_chat_service_background_memory_update_can_be_run_inline_without_affecting_reply(monkeypatch) -> None:
+def test_chat_service_background_memory_update_can_be_run_inline_without_affecting_reply(
+    monkeypatch,
+) -> None:
     store = _build_store()
     runtime = _RuntimeStub()
     service = ChatService(store, cast(Any, runtime))
@@ -320,7 +322,9 @@ def test_memory_manager_failure_is_recorded(monkeypatch) -> None:
     assert "memory_extraction_failed" in event_types
     assert "memory_background_job_finished" in event_types
     failed = next(item for item in events if item["event_type"] == "memory_extraction_failed")
-    finished = next(item for item in events if item["event_type"] == "memory_background_job_finished")
+    finished = next(
+        item for item in events if item["event_type"] == "memory_background_job_finished"
+    )
     assert failed["payload"]["retryable"] is True
     assert failed["payload"]["error_code"] == "parse_failed"
     assert finished["payload"]["result_status"] == "failed"
@@ -531,7 +535,13 @@ def test_memory_events_record_proposed_and_applied_operations(monkeypatch) -> No
     assert "memory_background_job_finished" in event_types
     proposed = next(item for item in events if item["event_type"] == "memory_operations_proposed")
     applied = next(item for item in events if item["event_type"] == "memory_operations_applied")
-    finished = next(item for item in events if item["event_type"] == "memory_background_job_finished")
+    finished = next(
+        item for item in events if item["event_type"] == "memory_background_job_finished"
+    )
     assert proposed["payload"]["operations"][0]["op"] == "add"
-    assert applied["payload"]["operations_applied"][0]["resolved_as"] in {"memory_added", "merged_duplicate_add", "memory_superseded"}
+    assert applied["payload"]["operations_applied"][0]["resolved_as"] in {
+        "memory_added",
+        "merged_duplicate_add",
+        "memory_superseded",
+    }
     assert finished["payload"]["result_status"] == "ok"

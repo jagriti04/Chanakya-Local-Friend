@@ -76,7 +76,9 @@ def _build_test_app(
     database_path = tmp_path / "chanakya-test.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{database_path}")
     monkeypatch.setattr(app_module, "BASE_DIR", tmp_path)
-    monkeypatch.setattr(app_module, "get_mcp_config_path", lambda: tmp_path / "mcp_config_file.json")
+    monkeypatch.setattr(
+        app_module, "get_mcp_config_path", lambda: tmp_path / "mcp_config_file.json"
+    )
     monkeypatch.setattr(tool_loader, "initialize_all_tools", lambda: None)
     monkeypatch.setattr(
         tool_loader,
@@ -955,7 +957,10 @@ def test_tools_config_api_reads_and_writes_mcp_config(
     assert put_payload["server_ids"] == ["arxiv"]
     assert put_payload["reloaded"] is True
     assert put_payload["available_count"] == 1
-    assert json.loads(config_path.read_text(encoding="utf-8"))["mcpServers"]["arxiv"]["command"] == "uvx"
+    assert (
+        json.loads(config_path.read_text(encoding="utf-8"))["mcpServers"]["arxiv"]["command"]
+        == "uvx"
+    )
 
 
 def test_tools_config_api_rejects_invalid_json(
@@ -1413,13 +1418,15 @@ def test_create_app_prunes_sandbox_containers_on_startup(
     monkeypatch.setattr(
         app_module,
         "prune_stale_work_containers",
-        lambda valid_work_ids, remove_running=False: captured.update(
-            {
-                "valid_work_ids": set(valid_work_ids),
-                "remove_running": remove_running,
-            }
-        )
-        or {"ok": True, "removed": [], "failed": []},
+        lambda valid_work_ids, remove_running=False: (
+            captured.update(
+                {
+                    "valid_work_ids": set(valid_work_ids),
+                    "remove_running": remove_running,
+                }
+            )
+            or {"ok": True, "removed": [], "failed": []}
+        ),
     )
 
     _build_test_app(tmp_path, monkeypatch)

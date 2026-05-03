@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from dataclasses import dataclass
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from typing import Any
 
 from agent_framework import Message

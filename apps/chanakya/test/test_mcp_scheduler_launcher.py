@@ -124,7 +124,7 @@ def test_patch_executor_shell_support_makes_sound_optional(
     executor_file = tmp_path / "executor.py"
     executor_file.write_text(
         """                sound_cmd = 'paplay /usr/share/sounds/freedesktop/stereo/message.oga'
-                
+
                 # Chain commands together
                 command = f'{notify_cmd} && {sound_cmd}'
 """,

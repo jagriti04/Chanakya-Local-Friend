@@ -13,10 +13,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 from chanakya.config import get_database_url, load_local_env
 from chanakya.model import (
-    Base,
     AgentProfileModel,
-    ArtifactModel,
     AppEventModel,
+    ArtifactModel,
+    Base,
     ChatMessageModel,
     ChatSessionModel,
     RequestModel,

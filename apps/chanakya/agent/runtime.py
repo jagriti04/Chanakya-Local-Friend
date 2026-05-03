@@ -11,10 +11,8 @@ from urllib.request import urlopen
 
 from agent_framework import Agent, AgentResponse, Message
 from agent_framework.openai import OpenAIChatCompletionClient
-from sqlalchemy.orm import Session, sessionmaker
-
-from chanakya.agent.prompt import inject_tools_into_prompt
 from chanakya.agent.profile_files import load_agent_prompt
+from chanakya.agent.prompt import inject_tools_into_prompt
 from chanakya.config import (
     get_a2a_agent_url,
     get_agent_request_timeout_seconds,
@@ -26,8 +24,9 @@ from chanakya.history_provider import SQLAlchemyHistoryProvider
 from chanakya.mcp_runtime import ToolExecutionTrace, extract_tool_execution_traces
 from chanakya.model import AgentProfileModel
 from chanakya.services.async_loop import run_in_maf_loop
-from chanakya.store import AgentSessionContextRepository
 from chanakya.services.tool_loader import get_cached_tools, get_tools_availability
+from chanakya.store import AgentSessionContextRepository
+from sqlalchemy.orm import Session, sessionmaker
 
 
 @dataclass(slots=True)
@@ -495,13 +494,13 @@ class MAFRuntime:
         session.state["request_id"] = request_id
         session.state["history_query_text"] = history_query_text
         return await asyncio.wait_for(
-                run_agent.run(
-                    Message(
-                        "user",
-                        [prompt_text],
-                        additional_properties={"request_id": request_id},
-                    ),
-                    session=session,
+            run_agent.run(
+                Message(
+                    "user",
+                    [prompt_text],
+                    additional_properties={"request_id": request_id},
+                ),
+                session=session,
                 options={"store": True},
             ),
             timeout=get_agent_request_timeout_seconds(),

@@ -61,13 +61,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .[dev]
+          pip install -e ./apps/AI-Router-AIR[dev]
+          pip install -e ./apps/chanakya_conversation_layer[dev]
 
       - name: Run Unit Tests
         run: |
           # Run core tests assuming unit level
-          python -m pytest tests/ -v --ignore=tests/test_audio_service.py
+          python -m pytest apps/chanakya/test -v
 
-      - name: Run Integration Tests
+      - name: Run Additional Tests
         if: (success() || failure()) && steps.setup.outcome == 'success'
         env:
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY || 'ci-test-secret' }}
@@ -80,10 +82,9 @@ jobs:
           TTS_API_KEY: ${{ secrets.TTS_API_KEY || 'dummy-key' }}
           STT_API_KEY: ${{ secrets.STT_API_KEY || 'dummy-key' }}
         run: |
-          # Execute tests that might interact with the external Speaches container
-          # Currently, this runs all tests, but as the suite grows, you may
-          # restrict this to a specific directory or use pytest markers (e.g., -m integration)
-          python -m pytest tests/test_audio_service.py -v
+          # Execute AIR and Conversation Layer tests
+          python -m pytest apps/AI-Router-AIR/tests -v
+          python -m pytest apps/chanakya_conversation_layer/tests -v
 
       - name: Fix cache permissions
         if: always()

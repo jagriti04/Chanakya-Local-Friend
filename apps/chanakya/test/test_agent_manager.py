@@ -20,8 +20,8 @@ from chanakya.agent_manager import (
 from chanakya.chat_service import ChatService
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.domain import (
-    REQUEST_STATUS_IN_PROGRESS,
     REQUEST_STATUS_CANCELLED,
+    REQUEST_STATUS_IN_PROGRESS,
     TASK_STATUS_BLOCKED,
     TASK_STATUS_CANCELLED,
     TASK_STATUS_DONE,
@@ -191,7 +191,9 @@ def test_chat_service_routes_every_request_through_manager_for_software() -> Non
 
     store.create_work(work_id="work_routes_mgr_sw", title="Test Work", description="")
     reply = service.chat(
-        "session_mgr", "Please fix and test login rate limiting", work_id="work_routes_mgr_sw",
+        "session_mgr",
+        "Please fix and test login rate limiting",
+        work_id="work_routes_mgr_sw",
     )
 
     assert reply.route == "delegated_manager"
@@ -987,7 +989,9 @@ def test_normal_chat_persists_visible_delegation_notice_before_manager_result() 
 
     store.create_work(work_id="work_deleg_notice", title="Test Work", description="")
     reply = service.chat(
-        "session_notice", "Implement and test login rate limiting", work_id="work_deleg_notice",
+        "session_notice",
+        "Implement and test login rate limiting",
+        work_id="work_deleg_notice",
     )
 
     assert reply.route == "delegated_manager"
@@ -1032,7 +1036,9 @@ def test_manager_direct_fallback_runs_when_required_worker_is_missing() -> None:
 
     store.create_work(work_id="work_fallback", title="Test Work", description="")
     reply = service.chat(
-        "session_manager_fallback", "Implement and test login rate limiting", work_id="work_fallback",
+        "session_manager_fallback",
+        "Implement and test login rate limiting",
+        work_id="work_fallback",
     )
 
     assert reply.route == "delegated_manager"
@@ -1175,13 +1181,17 @@ def test_chat_service_routes_non_software_requests_through_informer_chain() -> N
 
     store.create_work(work_id="work_informer_chain", title="Test Work", description="")
     reply = service.chat(
-        "session_informer", "Research the weather in Berlin and write a concise answer",
+        "session_informer",
+        "Research the weather in Berlin and write a concise answer",
         work_id="work_informer_chain",
     )
 
     assert reply.route == "delegated_manager"
     assert reply.response_mode == WORKFLOW_GROUP_CHAT
-    assert reply.message == "Berlin weather was researched first and then turned into a concise answer."
+    assert (
+        reply.message
+        == "Berlin weather was researched first and then turned into a concise answer."
+    )
     manager_task = next(
         task
         for task in store.list_tasks(session_id="session_informer", limit=20)
@@ -1229,7 +1239,9 @@ def test_manager_preserves_specialist_response_when_user_did_not_request_summary
 
     store.create_work(work_id="work_specialist_preserve", title="Test Work", description="")
     reply = service.chat(
-        "session_passthrough", "Tell me something about Life of Pi", work_id="work_specialist_preserve",
+        "session_passthrough",
+        "Tell me something about Life of Pi",
+        work_id="work_specialist_preserve",
     )
 
     assert (
@@ -1270,7 +1282,8 @@ def test_informer_writer_recovers_when_workflow_output_contains_artifacts() -> N
 
     store.create_work(work_id="work_writer_artifacts", title="Test Work", description="")
     reply = service.chat(
-        "session_writer_recovery", "Tell me some important facts about Virat Kohli",
+        "session_writer_recovery",
+        "Tell me some important facts about Virat Kohli",
         work_id="work_writer_artifacts",
     )
 
@@ -1333,10 +1346,10 @@ def test_manager_runs_worker_stages_with_the_persisted_prompts() -> None:
         '{"use_subagent":false,"reason":"not needed"}'
     )
 
-
     store.create_work(work_id="work_persisted_prompts", title="Test Work", description="")
     reply = service.chat(
-        "session_prompt_persistence", "Write a python program to print hello world",
+        "session_prompt_persistence",
+        "Write a python program to print hello world",
         work_id="work_persisted_prompts",
     )
 
@@ -1402,10 +1415,11 @@ def test_informer_writer_recovers_when_output_echoes_research_handoff() -> None:
         '{"use_subagent":false,"reason":"not needed"}'
     )
 
-
     store.create_work(work_id="work_writer_echo", title="Test Work", description="")
     reply = service.chat(
-        "session_writer_echo", "Give me a short biography of Virat Kohli", work_id="work_writer_echo",
+        "session_writer_echo",
+        "Give me a short biography of Virat Kohli",
+        work_id="work_writer_echo",
     )
 
     writer_task = next(
@@ -1469,10 +1483,11 @@ def test_cto_tester_recovers_when_output_echoes_developer_handoff() -> None:
         '{"use_subagent":false,"reason":"not needed"}'
     )
 
-
     store.create_work(work_id="work_tester_echo", title="Test Work", description="")
     reply = service.chat(
-        "session_tester_recovery", "Write a python program to print hello world", work_id="work_tester_echo",
+        "session_tester_recovery",
+        "Write a python program to print hello world",
+        work_id="work_tester_echo",
     )
 
     tester_task = next(
@@ -1581,7 +1596,8 @@ def test_developer_future_tense_plan_output_is_rejected_and_repaired() -> None:
 
     store.create_work(work_id="work_plan_repair", title="Test Work", description="")
     reply = service.chat(
-        "session_developer_plan_repair", "Write a python program to print hello world",
+        "session_developer_plan_repair",
+        "Write a python program to print hello world",
         work_id="work_plan_repair",
     )
 
@@ -1605,8 +1621,8 @@ def test_developer_blank_repair_falls_back_to_no_tools_prompt(monkeypatch: Monke
     developer_profile = store.get_agent_profile("agent_developer")
 
     manager._run_profile_prompt_with_options = lambda *args, **kwargs: ""  # type: ignore[method-assign]
-    manager._run_profile_prompt_without_tools = (
-        lambda *args, **kwargs: '# Implementation Handoff\n\n```python\nprint("ok")\n```'
+    manager._run_profile_prompt_without_tools = lambda *args, **kwargs: (
+        '# Implementation Handoff\n\n```python\nprint("ok")\n```'
     )  # type: ignore[method-assign]
 
     repaired = manager._repair_developer_output(
@@ -2108,7 +2124,9 @@ def test_manager_prefers_saved_active_agents_during_delegation() -> None:
 
     store.create_work(work_id="work_saved_agents", title="Test Work", description="")
     reply = service.chat(
-        "session_saved_agents", "Implement and test milestone 5", work_id="work_saved_agents",
+        "session_saved_agents",
+        "Implement and test milestone 5",
+        work_id="work_saved_agents",
     )
 
     worker_tasks = [
@@ -2309,7 +2327,9 @@ def test_developer_temporary_subagent_lifecycle_is_persisted_and_cleaned() -> No
 
     store.create_work(work_id="work_temp_subagents", title="Test Work", description="")
     reply = service.chat(
-        "session_temp_subagents", "Implement and test login hardening", work_id="work_temp_subagents",
+        "session_temp_subagents",
+        "Implement and test login hardening",
+        work_id="work_temp_subagents",
     )
 
     assert reply.root_task_status == TASK_STATUS_DONE
@@ -2698,7 +2718,9 @@ def test_task_controls_cancel_retry_and_manual_unblock() -> None:
 
     store.create_work(work_id="work_controls", title="Test Work", description="")
     service.chat(
-        "session_controls", "Implement the service once I choose a framework", work_id="work_controls",
+        "session_controls",
+        "Implement the service once I choose a framework",
+        work_id="work_controls",
     )
     waiting_task = next(
         task
@@ -2765,7 +2787,9 @@ def test_resume_waiting_input_keeps_parent_tasks_waiting_when_more_input_needed(
 
     store.create_work(work_id="work_waiting_more", title="Test Work", description="")
     waiting_reply = service.chat(
-        "session_waiting_again", "Implement service", work_id="work_waiting_more",
+        "session_waiting_again",
+        "Implement service",
+        work_id="work_waiting_more",
     )
     assert waiting_reply.root_task_status == TASK_STATUS_WAITING_INPUT
     waiting_task = next(
@@ -3058,12 +3082,15 @@ def test_waiting_input_cancel_intent_stops_active_work_task() -> None:
 
     store.create_work(work_id="work_cancel_intent", title="Test Work", description="")
     waiting_reply = service.chat(
-        "session_waiting_cancel", "Implement the API", work_id="work_cancel_intent",
+        "session_waiting_cancel",
+        "Implement the API",
+        work_id="work_cancel_intent",
     )
     assert waiting_reply.root_task_status == TASK_STATUS_WAITING_INPUT
 
     cancelled_reply = service.chat(
-        "session_waiting_cancel", "forgot about it, and don't do anything! thanks",
+        "session_waiting_cancel",
+        "forgot about it, and don't do anything! thanks",
         work_id="work_cancel_intent",
     )
 

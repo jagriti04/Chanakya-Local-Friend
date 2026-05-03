@@ -66,7 +66,9 @@ def get_conversation_openai_config() -> dict[str, str | None]:
         "base_url": (
             core.get("base_url")
             if air_enabled
-            else (direct_base_url or os.getenv("CONVERSATION_OPENAI_BASE_URL") or core.get("base_url"))
+            else (
+                direct_base_url or os.getenv("CONVERSATION_OPENAI_BASE_URL") or core.get("base_url")
+            )
         ),
         "api_key": os.getenv("CONVERSATION_OPENAI_API_KEY") or core.get("api_key"),
         "model": os.getenv("CONVERSATION_OPENAI_CHAT_MODEL_ID") or core.get("model"),
