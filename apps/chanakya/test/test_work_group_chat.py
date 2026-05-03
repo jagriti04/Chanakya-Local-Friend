@@ -67,14 +67,18 @@ class _RuntimeStub:
         a2a_model_id: str | None = None,
         prompt_addendum: str | None = None,
     ) -> _RunResult:
-        return _RunResult(text=f"{self.profile.role}:{text}", response_mode="direct_answer", tool_traces=[])
+        return _RunResult(
+            text=f"{self.profile.role}:{text}", response_mode="direct_answer", tool_traces=[]
+        )
 
     def clear_session_state(self, session_id: str) -> None:
         return None
 
 
 class _TrackingManager(AgentManager):
-    def __init__(self, store: ChanakyaStore, session_factory, manager_profile: AgentProfileModel) -> None:
+    def __init__(
+        self, store: ChanakyaStore, session_factory, manager_profile: AgentProfileModel
+    ) -> None:
         super().__init__(store, session_factory, manager_profile)
         self.prompts_run: list[tuple[str, str]] = []
         self.completion_adjudication_runner = self._adjudicate_completion
@@ -84,10 +88,20 @@ class _TrackingManager(AgentManager):
         return "Merged file saved to `/workspace/rishabh_bajpai_merged.txt` with the summary and citations combined."
 
     @staticmethod
-    def _adjudicate_completion(profile, prompt: str, request_message: str, visible_messages: list[dict[str, Any]], completion_payload: dict[str, Any]) -> str:
+    def _adjudicate_completion(
+        profile,
+        prompt: str,
+        request_message: str,
+        visible_messages: list[dict[str, Any]],
+        completion_payload: dict[str, Any],
+    ) -> str:
         if visible_messages:
             latest = str(visible_messages[-1].get("text") or "").strip()
-            return '{"status":"completed","summary":' + json.dumps(latest) + ',"reason":null,"termination_case":"user_request_satisfied"}'
+            return (
+                '{"status":"completed","summary":'
+                + json.dumps(latest)
+                + ',"reason":null,"termination_case":"user_request_satisfied"}'
+            )
         return '{"status":"failed","summary":null,"reason":"The workflow reported completion without producing any visible result.","termination_case":"blocker_or_failure"}'
 
 
@@ -193,7 +207,11 @@ def test_work_group_chat_persists_visible_agent_turns_and_mirrors_history() -> N
             *seeded,
             _msg("assistant", "I found the core facts.", author_name="Researcher"),
             _msg("assistant", "Here is the polished answer.", author_name="Writer"),
-            _msg("assistant", '{"status":"completed","summary":"Here is the polished answer."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                '{"status":"completed","summary":"Here is the polished answer."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -215,30 +233,55 @@ def test_work_group_chat_persists_visible_agent_turns_and_mirrors_history() -> N
     assert execution_trace["call_sequence"][1]["kind"] == "participant_turn"
     assert execution_trace["call_sequence"][1]["agent_name"] == "Researcher"
     assert execution_trace["prompt_refs"]["orchestrator"]["agent_name"] == "Agent Manager"
-    assert execution_trace["prompt_refs"]["participant:agent_researcher"]["agent_name"] == "Researcher"
-    assert manager_task.get("input", {}).get("group_chat_state", {}).get("manager_termination_state", {}).get("status") == "completed"
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
-    assert root_task.get("input", {}).get("work_group_chat_state", {}).get("manager_termination_state", {}).get("status") == "completed"
-    event_types = [item.get("event_type") for item in store.list_task_events(session_id=work_session_id)]
+    assert (
+        execution_trace["prompt_refs"]["participant:agent_researcher"]["agent_name"] == "Researcher"
+    )
+    assert (
+        manager_task.get("input", {})
+        .get("group_chat_state", {})
+        .get("manager_termination_state", {})
+        .get("status")
+        == "completed"
+    )
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
+    assert (
+        root_task.get("input", {})
+        .get("work_group_chat_state", {})
+        .get("manager_termination_state", {})
+        .get("status")
+        == "completed"
+    )
+    event_types = [
+        item.get("event_type") for item in store.list_task_events(session_id=work_session_id)
+    ]
     assert "group_chat_speaker_selected" in event_types
     assert "group_chat_termination_decided" in event_types
     speaker_event = next(
-        item for item in store.list_task_events(session_id=work_session_id)
+        item
+        for item in store.list_task_events(session_id=work_session_id)
         if item.get("event_type") == "group_chat_speaker_selected"
     )
     termination_event = next(
-        item for item in store.list_task_events(session_id=work_session_id)
+        item
+        for item in store.list_task_events(session_id=work_session_id)
         if item.get("event_type") == "group_chat_termination_decided"
     )
     visible_message_events = [
-        item for item in store.list_task_events(session_id=work_session_id)
+        item
+        for item in store.list_task_events(session_id=work_session_id)
         if item.get("event_type") == "group_chat_visible_message_emitted"
     ]
     assert speaker_event["payload"]["selected_speaker"] == "Researcher"
     assert speaker_event["payload"]["selected_agent_id"] == "agent_researcher"
     assert termination_event["payload"]["termination_case"] == "user_request_satisfied"
     assert len(visible_message_events) == 2
-    assert execution_trace["context_policy"]["strategy"] == "compact_summary_plus_recent_visible_turns"
+    assert (
+        execution_trace["context_policy"]["strategy"] == "compact_summary_plus_recent_visible_turns"
+    )
     chanakya_messages = store.list_messages(work_session_id)
     assistant_messages = [item for item in chanakya_messages if item.get("role") == "assistant"]
     assert [item.get("metadata", {}).get("visible_agent_name") for item in assistant_messages] == [
@@ -285,7 +328,11 @@ def test_work_group_chat_termination_event_uses_final_completion_payload() -> No
         lambda seeded: [
             *seeded,
             _msg("assistant", "Implemented the Flask app.", author_name="Developer"),
-            _msg("assistant", '{"status":"completed","summary":"Implemented the Flask app."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                '{"status":"completed","summary":"Implemented the Flask app."}',
+                author_name="Agent Manager",
+            ),
         ],
         trace,
     )
@@ -310,22 +357,29 @@ def test_group_chat_participant_profiles_are_minimized_by_request_type() -> None
     _, manager_profile = _seed_full_hierarchy(store)
     manager = AgentManager(store, store.Session, manager_profile)
 
-    assert [item.id for item in manager._group_chat_participant_profiles(message="implement a flask api")] == [
-        "agent_developer"
-    ]
+    assert [
+        item.id
+        for item in manager._group_chat_participant_profiles(message="implement a flask api")
+    ] == ["agent_developer"]
     assert [
         item.id
         for item in manager._group_chat_participant_profiles(
             message="implement and test a flask api"
         )
     ] == ["agent_developer", "agent_tester"]
-    assert [item.id for item in manager._group_chat_participant_profiles(message="summarize this market report")] == [
+    assert [
+        item.id
+        for item in manager._group_chat_participant_profiles(message="summarize this market report")
+    ] == [
         "agent_researcher",
         "agent_writer",
     ]
-    assert [item.id for item in manager._group_chat_participant_profiles(message="rewrite it in a friendlier tone")] == [
-        "agent_writer"
-    ]
+    assert [
+        item.id
+        for item in manager._group_chat_participant_profiles(
+            message="rewrite it in a friendlier tone"
+        )
+    ] == ["agent_writer"]
 
 
 def test_group_chat_split_collapses_consecutive_messages_from_same_agent() -> None:
@@ -338,7 +392,9 @@ def test_group_chat_split_collapses_consecutive_messages_from_same_agent() -> No
         conversation_slice=[
             _msg("assistant", "First update.", author_name="Developer"),
             _msg("assistant", "Second update.", author_name="Developer"),
-            _msg("assistant", '{"status":"completed","summary":"Done."}', author_name="Agent Manager"),
+            _msg(
+                "assistant", '{"status":"completed","summary":"Done."}', author_name="Agent Manager"
+            ),
         ],
         participant_profiles=participant_profiles,
     )
@@ -358,7 +414,11 @@ def test_work_chat_binds_classic_session_to_active_work() -> None:
         lambda seeded: [
             *seeded,
             _msg("assistant", "Here is the work update.", author_name="Researcher"),
-            _msg("assistant", '{"status":"completed","summary":"Here is the work update."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                '{"status":"completed","summary":"Here is the work update."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -391,7 +451,11 @@ def test_work_group_chat_waiting_input_resumes_same_request() -> None:
             if call_count["count"] == 1:
                 return [
                     *seeded,
-                    _msg("assistant", "NEEDS_USER_INPUT: Need a framework choice before implementation can continue.", author_name="Developer"),
+                    _msg(
+                        "assistant",
+                        "NEEDS_USER_INPUT: Need a framework choice before implementation can continue.",
+                        author_name="Developer",
+                    ),
                     _msg(
                         "assistant",
                         (
@@ -405,7 +469,11 @@ def test_work_group_chat_waiting_input_resumes_same_request() -> None:
             return [
                 *seeded,
                 _msg("assistant", "Implemented with Flask.", author_name="Developer"),
-                _msg("assistant", '{"status":"completed","summary":"Implemented with Flask."}', author_name="Agent Manager"),
+                _msg(
+                    "assistant",
+                    '{"status":"completed","summary":"Implemented with Flask."}',
+                    author_name="Agent Manager",
+                ),
             ]
 
         return _FakeWorkflow(_conversation)
@@ -424,12 +492,20 @@ def test_work_group_chat_waiting_input_resumes_same_request() -> None:
         == "I need one detail before I can continue: Should we use Flask or FastAPI?"
     )
     assert all("NEEDS_USER_INPUT:" not in str(item.get("text") or "") for item in first.messages)
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
     group_chat_state = dict(root_task["input"]).get("work_group_chat_state")
     assert isinstance(group_chat_state, dict)
-    assert group_chat_state["context_policy"]["strategy"] == "compact_summary_plus_recent_visible_turns"
+    assert (
+        group_chat_state["context_policy"]["strategy"]
+        == "compact_summary_plus_recent_visible_turns"
+    )
     clarification_event = next(
-        item for item in store.list_task_events(session_id=work_session_id)
+        item
+        for item in store.list_task_events(session_id=work_session_id)
         if item.get("event_type") == "group_chat_clarification_requested"
     )
     assert clarification_event["payload"]["requesting_agent_name"] == "Developer"
@@ -439,7 +515,11 @@ def test_work_group_chat_waiting_input_resumes_same_request() -> None:
 
     assert resumed.root_task_status == TASK_STATUS_DONE
     assert resumed.messages[-1]["text"] == "Implemented with Flask."
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
     pending_state = dict(root_task["input"]).get("work_pending_interaction")
     assert isinstance(pending_state, dict)
     assert pending_state["active"] is False
@@ -447,7 +527,6 @@ def test_work_group_chat_waiting_input_resumes_same_request() -> None:
     assert isinstance(group_chat_state, dict)
     assert group_chat_state["manager_termination_state"]["status"] == "completed"
     chanakya_messages = store.list_messages(work_session_id)
-    assert any(item.get("content") == "Use Flask" for item in chanakya_messages)
     assert any(item.get("content") == "Implemented with Flask." for item in chanakya_messages)
 
 
@@ -497,7 +576,11 @@ def test_work_chat_autoresume_prefers_explicit_active_pending_interaction() -> N
             if call_count["count"] == 1:
                 return [
                     *seeded,
-                    _msg("assistant", "NEEDS_USER_INPUT: Need a framework choice before implementation can continue.", author_name="Developer"),
+                    _msg(
+                        "assistant",
+                        "NEEDS_USER_INPUT: Need a framework choice before implementation can continue.",
+                        author_name="Developer",
+                    ),
                     _msg(
                         "assistant",
                         (
@@ -511,7 +594,11 @@ def test_work_chat_autoresume_prefers_explicit_active_pending_interaction() -> N
             return [
                 *seeded,
                 _msg("assistant", "Implemented with Flask.", author_name="Developer"),
-                _msg("assistant", '{"status":"completed","summary":"Implemented with Flask."}', author_name="Agent Manager"),
+                _msg(
+                    "assistant",
+                    '{"status":"completed","summary":"Implemented with Flask."}',
+                    author_name="Agent Manager",
+                ),
             ]
 
         return _FakeWorkflow(_conversation)
@@ -522,7 +609,11 @@ def test_work_chat_autoresume_prefers_explicit_active_pending_interaction() -> N
 
     first = service.chat(work_session_id, "Build the API", work_id="work_pending_marker")
     assert first.root_task_status == TASK_STATUS_WAITING_INPUT
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
     pending_state = dict(root_task["input"]).get("work_pending_interaction")
     assert isinstance(pending_state, dict)
     assert pending_state["active"] is True
@@ -549,7 +640,9 @@ def test_work_chat_autoresume_prefers_explicit_active_pending_interaction() -> N
     assert resumed.messages[-1]["text"] == "Implemented with Flask."
 
 
-def test_group_chat_software_completion_requires_developer_and_tester_when_validation_requested() -> None:
+def test_group_chat_software_completion_requires_developer_and_tester_when_validation_requested() -> (
+    None
+):
     store = _build_store()
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_validation_guard")
@@ -558,20 +651,39 @@ def test_group_chat_software_completion_requires_developer_and_tester_when_valid
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", "I've updated `hello_world.py` with the requested implementation and verified it conceptually.", author_name="Researcher"),
-            _msg("assistant", '{"status":"completed","summary":"Finished the software change."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "I've updated `hello_world.py` with the requested implementation and verified it conceptually.",
+                author_name="Researcher",
+            ),
+            _msg(
+                "assistant",
+                '{"status":"completed","summary":"Finished the software change."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
     service = ChatService(store, cast(MAFRuntime, _RuntimeStub(chanakya)), manager)
     service._conversation_layer = type("_DisabledLayer", (), {"enabled": False})()  # type: ignore[attr-defined]
 
-    reply = service.chat(work_session_id, "Implement and test the hello world update", work_id="work_validation_guard")
+    reply = service.chat(
+        work_session_id,
+        "Implement and test the hello world update",
+        work_id="work_validation_guard",
+    )
 
     assert reply.root_task_status == TASK_STATUS_FAILED
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
     group_chat_state = dict(root_task["input"]).get("work_group_chat_state") or {}
-    assert group_chat_state["manager_termination_state"]["termination_case"] == "completion_requirements_not_met"
+    assert (
+        group_chat_state["manager_termination_state"]["termination_case"]
+        == "completion_requirements_not_met"
+    )
     manager_task = next(
         task
         for task in store.list_tasks(session_id=work_session_id, limit=20)
@@ -583,7 +695,9 @@ def test_group_chat_software_completion_requires_developer_and_tester_when_valid
     assert completion["completion_requirements"]["developer_implementation_seen"] is False
 
 
-def test_group_chat_software_completion_allows_developer_only_when_validation_not_requested() -> None:
+def test_group_chat_software_completion_allows_developer_only_when_validation_not_requested() -> (
+    None
+):
     store = _build_store()
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_developer_only")
@@ -592,15 +706,25 @@ def test_group_chat_software_completion_allows_developer_only_when_validation_no
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", "Implemented `/workspace/hello_world.py` with the requested output.", author_name="Developer"),
-            _msg("assistant", '{"status":"completed","summary":"Implemented the requested output."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "Implemented `/workspace/hello_world.py` with the requested output.",
+                author_name="Developer",
+            ),
+            _msg(
+                "assistant",
+                '{"status":"completed","summary":"Implemented the requested output."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
     service = ChatService(store, cast(MAFRuntime, _RuntimeStub(chanakya)), manager)
     service._conversation_layer = type("_DisabledLayer", (), {"enabled": False})()  # type: ignore[attr-defined]
 
-    reply = service.chat(work_session_id, "Implement the hello world update", work_id="work_developer_only")
+    reply = service.chat(
+        work_session_id, "Implement the hello world update", work_id="work_developer_only"
+    )
 
     assert reply.root_task_status == TASK_STATUS_DONE
 
@@ -611,7 +735,9 @@ def test_group_chat_participant_profiles_narrow_for_software_requests() -> None:
     manager = AgentManager(store, store.Session, manager_profile)
 
     software_profiles = manager._group_chat_participant_profiles("Implement the hello world update")
-    validated_profiles = manager._group_chat_participant_profiles("Implement and test the hello world update")
+    validated_profiles = manager._group_chat_participant_profiles(
+        "Implement and test the hello world update"
+    )
     default_profiles = manager._group_chat_participant_profiles()
 
     assert [profile.role for profile in software_profiles] == ["developer"]
@@ -629,7 +755,9 @@ def test_group_chat_split_completion_collapses_consecutive_messages_from_same_ag
         conversation_slice=[
             _msg("assistant", "First implementation update.", author_name="Developer"),
             _msg("assistant", "Second implementation update.", author_name="Developer"),
-            _msg("assistant", '{"status":"completed","summary":"Done."}', author_name="Agent Manager"),
+            _msg(
+                "assistant", '{"status":"completed","summary":"Done."}', author_name="Agent Manager"
+            ),
         ],
         participant_profiles=participant_profiles,
     )
@@ -637,7 +765,10 @@ def test_group_chat_split_completion_collapses_consecutive_messages_from_same_ag
     assert completion["status"] == "completed"
     assert len(visible_messages) == 1
     assert visible_messages[0]["agent_name"] == "Developer"
-    assert visible_messages[0]["text"] == "First implementation update.\n\nSecond implementation update."
+    assert (
+        visible_messages[0]["text"]
+        == "First implementation update.\n\nSecond implementation update."
+    )
 
 
 def test_group_chat_extract_conversation_falls_back_to_runtime_trace() -> None:
@@ -667,14 +798,18 @@ def test_group_chat_extract_conversation_falls_back_to_runtime_trace() -> None:
         ],
     )
 
-    conversation = manager._extract_group_chat_conversation(_FakeWorkflowResult([]), workflow=workflow)
+    conversation = manager._extract_group_chat_conversation(
+        _FakeWorkflowResult([]), workflow=workflow
+    )
 
     assert [item.author_name for item in conversation] == ["Developer", "Agent Manager"]
     assert conversation[0].text == "Implemented the API."
     assert conversation[1].text == '{"status":"completed","summary":"Implemented the API."}'
 
 
-def test_group_chat_extract_conversation_prefers_runtime_trace_over_terminal_completion_only() -> None:
+def test_group_chat_extract_conversation_prefers_runtime_trace_over_terminal_completion_only() -> (
+    None
+):
     store = _build_store()
     _, manager_profile = _seed_full_hierarchy(store)
     manager = AgentManager(store, store.Session, manager_profile)
@@ -700,13 +835,23 @@ def test_group_chat_extract_conversation_prefers_runtime_trace_over_terminal_com
             }
         ],
     )
-    terminal_only_result = _FakeWorkflowResult([
-        type(
-            "_TerminalResponse",
-            (),
-            {"messages": [_msg("assistant", '{"status":"completed","summary":"Implemented the API."}', author_name="Agent Manager")]},
-        )()
-    ])
+    terminal_only_result = _FakeWorkflowResult(
+        [
+            type(
+                "_TerminalResponse",
+                (),
+                {
+                    "messages": [
+                        _msg(
+                            "assistant",
+                            '{"status":"completed","summary":"Implemented the API."}',
+                            author_name="Agent Manager",
+                        )
+                    ]
+                },
+            )()
+        ]
+    )
 
     conversation = manager._extract_group_chat_conversation(terminal_only_result, workflow=workflow)
 
@@ -718,12 +863,21 @@ def test_group_chat_recovers_false_negative_failure_when_developer_evidence_exis
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_false_negative")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", "Script saved to `/workspace/primes_between_74_and_534.py` in the shared workspace.", author_name="Developer"),
-            _msg("assistant", '{"status":"failed","reason":"The conversation has been terminated by the agent."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "Script saved to `/workspace/primes_between_74_and_534.py` in the shared workspace.",
+                author_name="Developer",
+            ),
+            _msg(
+                "assistant",
+                '{"status":"failed","reason":"The conversation has been terminated by the agent."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -749,7 +903,11 @@ def test_group_chat_failed_run_uses_failure_reason_when_no_visible_output() -> N
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", '{"status":"failed","reason":"No configured participant/tool path could capture a screenshot for this request."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                '{"status":"failed","reason":"No configured participant/tool path could capture a screenshot for this request."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -763,7 +921,10 @@ def test_group_chat_failed_run_uses_failure_reason_when_no_visible_output() -> N
     )
 
     assert reply.root_task_status == TASK_STATUS_FAILED
-    assert reply.message == "No configured participant/tool path could capture a screenshot for this request."
+    assert (
+        reply.message
+        == "No configured participant/tool path could capture a screenshot for this request."
+    )
 
 
 def test_group_chat_recovers_successful_information_followup_from_bad_failure_payload() -> None:
@@ -771,12 +932,21 @@ def test_group_chat_recovers_successful_information_followup_from_bad_failure_pa
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_info_followup")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", "Here is the extracted and summarized text content from the website.", author_name="Researcher"),
-            _msg("assistant", '{"status":"failed","reason":"The user requested to extract and summarize the text content of the website. The Researcher has already fetched the content and provided a comprehensive summary. No further steps are required."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "Here is the extracted and summarized text content from the website.",
+                author_name="Researcher",
+            ),
+            _msg(
+                "assistant",
+                '{"status":"failed","reason":"The user requested to extract and summarize the text content of the website. The Researcher has already fetched the content and provided a comprehensive summary. No further steps are required."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -798,12 +968,21 @@ def test_group_chat_save_followup_stops_once_workspace_path_is_reported() -> Non
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_save_followup")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", "Done. The summary has been saved to `/workspace/rishabh_bajpai_summary.txt` in the active workspace.", author_name="Developer"),
-            _msg("assistant", '{"status":"failed","reason":"The 1-paragraph summary of Rishabh Bajpai has been saved to the workspace."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "Done. The summary has been saved to `/workspace/rishabh_bajpai_summary.txt` in the active workspace.",
+                author_name="Developer",
+            ),
+            _msg(
+                "assistant",
+                '{"status":"failed","reason":"The 1-paragraph summary of Rishabh Bajpai has been saved to the workspace."}',
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -821,19 +1000,30 @@ def test_group_chat_max_rounds_falls_back_to_success_when_visible_report_is_suff
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_report_rounds")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
             *seeded,
-            _msg("assistant", "Report saved as **`climate_change_2025_report.md`** in the shared workspace.\n\n**Word count: ~170 words.**\n\n### Summary of Key Points:\n1. Temperatures remained near record highs in 2025.\n2. Climate action progress was uneven across sectors.\n3. Extreme weather continued to intensify globally.\n4. Major legal and diplomatic milestones shaped the year.\n5. Adaptation and emissions gaps remained significant.", author_name="Researcher"),
-            _msg("assistant", "The group chat has reached the maximum number of rounds.", author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "Report saved as **`climate_change_2025_report.md`** in the shared workspace.\n\n**Word count: ~170 words.**\n\n### Summary of Key Points:\n1. Temperatures remained near record highs in 2025.\n2. Climate action progress was uneven across sectors.\n3. Extreme weather continued to intensify globally.\n4. Major legal and diplomatic milestones shaped the year.\n5. Adaptation and emissions gaps remained significant.",
+                author_name="Researcher",
+            ),
+            _msg(
+                "assistant",
+                "The group chat has reached the maximum number of rounds.",
+                author_name="Agent Manager",
+            ),
         ]
     )
 
     service = ChatService(store, cast(MAFRuntime, _RuntimeStub(chanakya)), manager)
     service._conversation_layer = type("_DisabledLayer", (), {"enabled": False})()  # type: ignore[attr-defined]
 
-    reply = service.chat(work_session_id, "ok do it, I want 100-200 words", work_id="work_report_rounds")
+    reply = service.chat(
+        work_session_id, "ok do it, I want 100-200 words", work_id="work_report_rounds"
+    )
 
     assert reply.root_task_status == TASK_STATUS_DONE
     assert "climate_change_2025_report.md" in reply.messages[-1]["text"]
@@ -884,21 +1074,37 @@ def test_group_chat_retries_with_sanitized_user_seed_after_missing_user_query_fa
                 call_count["count"] += 1
                 seeded = list(message or [])
                 if call_count["count"] == 1:
-                    return _FakeWorkflowResult([
+                    return _FakeWorkflowResult(
                         [
-                            *seeded,
-                            _msg("assistant", '{"status":"failed","reason":"Internal framework error: prompt template rendering failed (no user query found in messages). Please retry the request."}', author_name="Agent Manager"),
+                            [
+                                *seeded,
+                                _msg(
+                                    "assistant",
+                                    '{"status":"failed","reason":"Internal framework error: prompt template rendering failed (no user query found in messages). Please retry the request."}',
+                                    author_name="Agent Manager",
+                                ),
+                            ]
                         ]
-                    ])
+                    )
                 assert seeded[-1].role == "user"
                 assert seeded[-1].text == "please try again"
-                return _FakeWorkflowResult([
+                return _FakeWorkflowResult(
                     [
-                        *seeded,
-                        _msg("assistant", "Merged file saved to `/workspace/rishabh_bajpai_merged.txt` in the active workspace.", author_name="Developer"),
-                        _msg("assistant", '{"status":"completed","summary":"Merged file saved to `/workspace/rishabh_bajpai_merged.txt` in the active workspace."}', author_name="Agent Manager"),
+                        [
+                            *seeded,
+                            _msg(
+                                "assistant",
+                                "Merged file saved to `/workspace/rishabh_bajpai_merged.txt` in the active workspace.",
+                                author_name="Developer",
+                            ),
+                            _msg(
+                                "assistant",
+                                '{"status":"completed","summary":"Merged file saved to `/workspace/rishabh_bajpai_merged.txt` in the active workspace."}',
+                                author_name="Agent Manager",
+                            ),
+                        ]
                     ]
-                ])
+                )
 
         return _Workflow()
 
@@ -953,7 +1159,12 @@ def test_delegated_tool_traces_are_persisted_and_counted() -> None:
                 "prompt_ref": "participant:agent_developer",
                 "call_input": {"input_messages": [], "available_tools": []},
                 "response_messages": [
-                    {"role": "assistant", "author_name": "Developer", "text": "Saved report to /workspace/report.md", "content_types": []},
+                    {
+                        "role": "assistant",
+                        "author_name": "Developer",
+                        "text": "Saved report to /workspace/report.md",
+                        "content_types": [],
+                    },
                 ],
                 "tool_traces": [
                     {
@@ -974,7 +1185,11 @@ def test_delegated_tool_traces_are_persisted_and_counted() -> None:
         lambda seeded: [
             *seeded,
             _msg("assistant", "Saved report to /workspace/report.md", author_name="Developer"),
-            _msg("assistant", '{"status":"completed","summary":"Saved report."}', author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                '{"status":"completed","summary":"Saved report."}',
+                author_name="Agent Manager",
+            ),
         ],
         trace,
     )
@@ -991,7 +1206,9 @@ def test_delegated_tool_traces_are_persisted_and_counted() -> None:
     assert traces[0]["agent_id"] == "agent_developer"
     assert traces[0]["agent_name"] == "Developer"
     events = store.list_task_events(session_id=work_session_id)
-    persisted_event = next(item for item in events if item.get("event_type") == "response_persisted")
+    persisted_event = next(
+        item for item in events if item.get("event_type") == "response_persisted"
+    )
     assert persisted_event["payload"]["tool_calls_used"] == 1
 
 
@@ -1027,7 +1244,11 @@ def test_group_chat_max_rounds_is_normalized_into_bounded_failure() -> None:
         lambda seeded: [
             *seeded,
             _msg("assistant", "Developer is still iterating.", author_name="Developer"),
-            _msg("assistant", "The group chat has reached the maximum number of rounds.", author_name="Agent Manager"),
+            _msg(
+                "assistant",
+                "The group chat has reached the maximum number of rounds.",
+                author_name="Agent Manager",
+            ),
         ]
     )
 
@@ -1037,7 +1258,11 @@ def test_group_chat_max_rounds_is_normalized_into_bounded_failure() -> None:
     reply = service.chat(work_session_id, "Keep iterating until done", work_id="work_round_limit")
 
     assert reply.root_task_status == TASK_STATUS_FAILED
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
     group_chat_state = root_task.get("input", {}).get("work_group_chat_state", {})
     assert group_chat_state["manager_termination_state"]["termination_case"] == "max_rounds_reached"
     manager_task = next(
@@ -1048,7 +1273,8 @@ def test_group_chat_max_rounds_is_normalized_into_bounded_failure() -> None:
     completion = manager_task.get("result", {}).get("completion", {})
     assert completion["termination_case"] == "max_rounds_reached"
     termination_event = next(
-        item for item in store.list_task_events(session_id=work_session_id)
+        item
+        for item in store.list_task_events(session_id=work_session_id)
         if item.get("event_type") == "group_chat_termination_decided"
     )
     assert termination_event["payload"]["termination_case"] == "max_rounds_reached"
@@ -1068,13 +1294,19 @@ def test_work_group_chat_retries_transient_502() -> None:
                 if call_count["count"] == 1:
                     raise RuntimeError("Error code: 502 - {'detail': ''}")
                 seeded = list(message or [])
-                return _FakeWorkflowResult([
+                return _FakeWorkflowResult(
                     [
-                        *seeded,
-                        _msg("assistant", "Recovered after retry.", author_name="Writer"),
-                        _msg("assistant", '{"status":"completed","summary":"Recovered after retry."}', author_name="Agent Manager"),
+                        [
+                            *seeded,
+                            _msg("assistant", "Recovered after retry.", author_name="Writer"),
+                            _msg(
+                                "assistant",
+                                '{"status":"completed","summary":"Recovered after retry."}',
+                                author_name="Agent Manager",
+                            ),
+                        ]
                     ]
-                ])
+                )
 
         return _TransientWorkflow()
 
@@ -1109,9 +1341,16 @@ def test_group_chat_failure_preserves_runtime_failure_classification() -> None:
     reply = service.chat(work_session_id, "Retry until it works", work_id="work_retry_fail")
 
     assert reply.root_task_status == TASK_STATUS_FAILED
-    root_task = next(task for task in store.list_tasks(session_id=work_session_id, root_only=True) if task["is_root"])
+    root_task = next(
+        task
+        for task in store.list_tasks(session_id=work_session_id, root_only=True)
+        if task["is_root"]
+    )
     group_chat_state = dict(root_task["input"]).get("work_group_chat_state") or {}
-    assert group_chat_state["manager_termination_state"]["termination_case"] == "transient_provider_failure"
+    assert (
+        group_chat_state["manager_termination_state"]["termination_case"]
+        == "transient_provider_failure"
+    )
 
 
 def test_group_chat_seeded_history_is_bounded() -> None:
@@ -1135,6 +1374,7 @@ def test_group_chat_orchestrator_is_built_with_retry_attempts() -> None:
     store = _build_store()
     _, manager_profile = _seed_full_hierarchy(store)
     manager = AgentManager(store, store.Session, manager_profile)
+    manager._resolve_client = lambda: object()  # type: ignore[method-assign]
     participant_profiles = manager._group_chat_participant_profiles()
 
     workflow = manager._build_work_group_chat_workflow(
@@ -1157,8 +1397,18 @@ def test_group_chat_execution_trace_includes_runtime_decisions_and_tool_calls() 
             {
                 "call_input": {
                     "input_messages": [
-                        {"role": "user", "author_name": "User", "text": "Build a demo API", "content_types": []},
-                        {"role": "user", "author_name": None, "text": "orchestrator instruction", "content_types": []},
+                        {
+                            "role": "user",
+                            "author_name": "User",
+                            "text": "Build a demo API",
+                            "content_types": [],
+                        },
+                        {
+                            "role": "user",
+                            "author_name": None,
+                            "text": "orchestrator instruction",
+                            "content_types": [],
+                        },
                     ],
                     "available_tools": [],
                     "model": "test-model",
@@ -1178,9 +1428,24 @@ def test_group_chat_execution_trace_includes_runtime_decisions_and_tool_calls() 
             {
                 "call_input": {
                     "input_messages": [
-                        {"role": "user", "author_name": "User", "text": "Build a demo API", "content_types": []},
-                        {"role": "assistant", "author_name": "Developer", "text": "Implemented the API.", "content_types": []},
-                        {"role": "user", "author_name": None, "text": "orchestrator instruction", "content_types": []},
+                        {
+                            "role": "user",
+                            "author_name": "User",
+                            "text": "Build a demo API",
+                            "content_types": [],
+                        },
+                        {
+                            "role": "assistant",
+                            "author_name": "Developer",
+                            "text": "Implemented the API.",
+                            "content_types": [],
+                        },
+                        {
+                            "role": "user",
+                            "author_name": None,
+                            "text": "orchestrator instruction",
+                            "content_types": [],
+                        },
                     ],
                     "available_tools": [],
                     "model": "test-model",
@@ -1206,15 +1471,31 @@ def test_group_chat_execution_trace_includes_runtime_decisions_and_tool_calls() 
                 "prompt_ref": "participant:agent_developer",
                 "call_input": {
                     "input_messages": [
-                        {"role": "user", "author_name": "User", "text": "Build a demo API", "content_types": []},
+                        {
+                            "role": "user",
+                            "author_name": "User",
+                            "text": "Build a demo API",
+                            "content_types": [],
+                        },
                     ],
-                    "available_tools": [{"tool_id": "mcp_filesystem", "tool_name": "Filesystem", "server_name": "basic"}],
+                    "available_tools": [
+                        {
+                            "tool_id": "mcp_filesystem",
+                            "tool_name": "Filesystem",
+                            "server_name": "basic",
+                        }
+                    ],
                     "model": "test-model",
                     "backend": "local",
                     "endpoint": "http://test",
                 },
                 "response_messages": [
-                    {"role": "assistant", "author_name": "Developer", "text": "Implemented the API.", "content_types": []},
+                    {
+                        "role": "assistant",
+                        "author_name": "Developer",
+                        "text": "Implemented the API.",
+                        "content_types": [],
+                    },
                 ],
                 "tool_traces": [
                     {

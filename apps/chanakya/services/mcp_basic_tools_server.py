@@ -10,9 +10,13 @@ from typing import Any
 from urllib import error, parse, request
 
 from mcp.server.fastmcp import FastMCP
+
 from chanakya.config import get_data_dir
 from chanakya.services.mcp_feedback import build_recovery_payload
-from chanakya.services.sandbox_workspace import CLASSIC_ARTIFACT_WORKSPACE_ID, resolve_shared_workspace
+from chanakya.services.sandbox_workspace import (
+    CLASSIC_ARTIFACT_WORKSPACE_ID,
+    resolve_shared_workspace,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MAX_TEXT_CHARS = 20000
@@ -47,7 +51,9 @@ def _resolve_filesystem_workspace(work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID) 
     return resolve_shared_workspace(work_id, allow_create_missing_classic=False).resolve()
 
 
-def _resolve_filesystem_path(path: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID) -> tuple[Path, Path]:
+def _resolve_filesystem_path(
+    path: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID
+) -> tuple[Path, Path]:
     raw = (path or ".").strip()
     workspace_root = _resolve_filesystem_workspace(work_id)
     candidate = (workspace_root / raw).resolve()
@@ -77,9 +83,7 @@ def _filesystem_error_payload(
                 for item in sorted(root.iterdir(), key=lambda child: child.name.lower())[:10]
             ]
     except Exception:
-        hint = (
-            "Retry with a valid existing work_id or create the workspace through the appropriate tool first."
-        )
+        hint = "Retry with a valid existing work_id or create the workspace through the appropriate tool first."
     return build_recovery_payload(
         error=str(error),
         hint=hint,
@@ -90,7 +94,9 @@ def _filesystem_error_payload(
     )
 
 
-def _list_directory(path: str = ".", work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID) -> dict[str, Any]:
+def _list_directory(
+    path: str = ".", work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID
+) -> dict[str, Any]:
     workspace_root, resolved = _resolve_filesystem_path(path, work_id)
     if not resolved.exists():
         raise FileNotFoundError(f"Path not found: {path}")
@@ -114,7 +120,9 @@ def _list_directory(path: str = ".", work_id: str = CLASSIC_ARTIFACT_WORKSPACE_I
     }
 
 
-def _read_text_file(path: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID, max_chars: int = MAX_TEXT_CHARS) -> dict[str, Any]:
+def _read_text_file(
+    path: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID, max_chars: int = MAX_TEXT_CHARS
+) -> dict[str, Any]:
     workspace_root, resolved = _resolve_filesystem_path(path, work_id)
     if not resolved.exists():
         raise FileNotFoundError(f"Path not found: {path}")
@@ -130,7 +138,9 @@ def _read_text_file(path: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID, max
     }
 
 
-def _write_text_file(path: str, content: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID) -> dict[str, Any]:
+def _write_text_file(
+    path: str, content: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID
+) -> dict[str, Any]:
     workspace_root, resolved = _resolve_filesystem_path(path, work_id)
     resolved.parent.mkdir(parents=True, exist_ok=True)
     resolved.write_text(content, encoding="utf-8")
@@ -460,7 +470,9 @@ def _build_filesystem_server() -> FastMCP:
     mcp = FastMCP("Chanakya Filesystem Tools", json_response=True)
 
     @mcp.tool()
-    def list_directory(path: str = ".", work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID) -> dict[str, Any]:
+    def list_directory(
+        path: str = ".", work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID
+    ) -> dict[str, Any]:
         """List files in the shared sandbox workspace for the given work_id."""
         try:
             return _list_directory(path, work_id)
@@ -480,7 +492,9 @@ def _build_filesystem_server() -> FastMCP:
             return _filesystem_error_payload(error=exc, path=path, work_id=work_id)
 
     @mcp.tool()
-    def write_text_file(path: str, content: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID) -> dict[str, Any]:
+    def write_text_file(
+        path: str, content: str, work_id: str = CLASSIC_ARTIFACT_WORKSPACE_ID
+    ) -> dict[str, Any]:
         """Write a UTF-8 text file inside the shared sandbox workspace for the given work_id."""
         try:
             return _write_text_file(path, content, work_id)

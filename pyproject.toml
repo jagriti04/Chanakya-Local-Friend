@@ -26,9 +26,11 @@ dev = [
 
 [tool.ruff]
 line-length = 100
+src = ["apps"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+ignore = ["E501", "F821", "F841"]
 
 [tool.mypy]
 python_version = "3.11"

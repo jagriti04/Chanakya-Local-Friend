@@ -1602,15 +1602,11 @@ class WorkNotificationRepository:
                 .limit(limit)
             )
             if not include_acknowledged:
-                stmt = stmt.where(
-                    WorkNotificationModel.acknowledged.is_(False)
-                )
+                stmt = stmt.where(WorkNotificationModel.acknowledged.is_(False))
             if work_id is not None:
                 stmt = stmt.where(WorkNotificationModel.work_id == work_id)
             if since is not None:
-                stmt = stmt.where(
-                    WorkNotificationModel.created_at > since
-                )
+                stmt = stmt.where(WorkNotificationModel.created_at > since)
             rows = session.scalars(stmt).all()
             result = [
                 {
@@ -1835,9 +1831,7 @@ class ChanakyaStore:
                 delete(WorkAgentSessionModel).where(WorkAgentSessionModel.work_id == work_id)
             )
             session.execute(
-                delete(WorkNotificationModel).where(
-                    WorkNotificationModel.work_id == work_id
-                )
+                delete(WorkNotificationModel).where(WorkNotificationModel.work_id == work_id)
             )
             session.execute(
                 delete(ClassicActiveWorkModel).where(ClassicActiveWorkModel.work_id == work_id)

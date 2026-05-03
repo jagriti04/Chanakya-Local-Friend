@@ -5,6 +5,7 @@ from typing import Any
 
 from chanakya.config import load_local_env
 
+
 def _resolve_mcp_config_path() -> Path:
     """Find mcp_config_file.json relative to the project layout."""
     candidates = [
@@ -29,7 +30,7 @@ def load_mcp_config() -> dict[str, dict[str, Any]]:
     config_path = _resolve_mcp_config_path()
     if not config_path.exists():
         return {}
-    
+
     try:
         with open(config_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -37,6 +38,7 @@ def load_mcp_config() -> dict[str, dict[str, Any]]:
     except Exception as e:
         print(f"Failed to load MCP config: {e}")
         return {}
+
 
 def merge_env_with_os(server_env: dict[str, str]) -> dict[str, str]:
     """Merges config environmental variables with real OS vars (OS wins)."""

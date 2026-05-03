@@ -188,6 +188,7 @@ _CODE_SIGNAL_PATTERNS = [
     re.compile(r"\{\s*\n.*\n\}", re.DOTALL),
 ]
 
+
 class ChatService:
     def __init__(
         self,
@@ -204,7 +205,9 @@ class ChatService:
         self._work_locks: OrderedDict[str, threading.Lock] = OrderedDict()
         self._work_locks_guard = threading.Lock()
         self._long_term_memory = LongTermMemoryService(store)
-        self._memory_update_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="memory-update")
+        self._memory_update_executor = ThreadPoolExecutor(
+            max_workers=4, thread_name_prefix="memory-update"
+        )
 
     def close(self) -> None:
         """Release resources held by this service (e.g. background thread pool)."""
@@ -312,7 +315,9 @@ class ChatService:
         for record in records:
             tool_id = str(record.get("tool_id") or "").strip()
             tool_name = str(record.get("tool_name") or "").strip()
-            server_name = str(record.get("server_name") or "unknown_server").strip() or "unknown_server"
+            server_name = (
+                str(record.get("server_name") or "unknown_server").strip() or "unknown_server"
+            )
             status = str(record.get("status") or "unknown").strip() or "unknown"
             if not tool_id or not tool_name:
                 continue
@@ -328,13 +333,19 @@ class ChatService:
                 tool_name=tool_name,
                 server_name=server_name,
                 status=status,
-                input_json={"raw": record.get("input_payload")} if record.get("input_payload") else {},
+                input_json={"raw": record.get("input_payload")}
+                if record.get("input_payload")
+                else {},
             )
             self.store.finish_tool_invocation(
                 invocation_id,
                 status=status,
-                output_text=(None if record.get("output_text") is None else str(record.get("output_text"))),
-                error_text=(None if record.get("error_text") is None else str(record.get("error_text"))),
+                output_text=(
+                    None if record.get("output_text") is None else str(record.get("output_text"))
+                ),
+                error_text=(
+                    None if record.get("error_text") is None else str(record.get("error_text"))
+                ),
             )
             self.store.create_task_event(
                 session_id=session_id,
@@ -348,7 +359,8 @@ class ChatService:
                     "server_name": server_name,
                     "status": status,
                     "agent_id": str(record.get("agent_id") or "").strip() or fallback_agent_id,
-                    "agent_name": str(record.get("agent_name") or "").strip() or fallback_agent_name,
+                    "agent_name": str(record.get("agent_name") or "").strip()
+                    or fallback_agent_name,
                     "agent_role": str(record.get("agent_role") or "").strip() or None,
                 },
             )
@@ -789,18 +801,14 @@ class ChatService:
                     "asked for a file, code, or a saved deliverable."
                 )
             else:
-                artifact_prompt += (
-                    " In work mode, create or update artifacts directly when they are natural deliverables."
-                )
+                artifact_prompt += " In work mode, create or update artifacts directly when they are natural deliverables."
         if has_filesystem:
             artifact_prompt += (
                 " Use `mcp_filesystem_*` for scratch workspace operations, supporting files, and folder management, but prefer "
                 "artifact tools for user-visible saved deliverables."
             )
             if work_id is None:
-                artifact_prompt += (
-                    f" In classic chat, if you use filesystem tools, always pass work_id='{CLASSIC_ARTIFACT_WORKSPACE_ID}' so files go into the shared artifacts workspace."
-                )
+                artifact_prompt += f" In classic chat, if you use filesystem tools, always pass work_id='{CLASSIC_ARTIFACT_WORKSPACE_ID}' so files go into the shared artifacts workspace."
         return self._with_long_term_memory_addendum(
             base_prompt + context_prompt + artifact_prompt,
             session_id=session_id,
@@ -1007,10 +1015,7 @@ class ChatService:
 
     @staticmethod
     def _conversation_layer_failure_message() -> str:
-        return (
-            "I couldn't safely format that reply for classic chat just now. "
-            "Please try again."
-        )
+        return "I couldn't safely format that reply for classic chat just now. Please try again."
 
     @staticmethod
     def _conversation_message_content(messages: list[dict[str, Any]], fallback: str) -> str:
@@ -1109,7 +1114,11 @@ class ChatService:
             summary=work.description,
             workflow_type=(
                 workflow_type
-                or (None if existing is None else str(existing.get("workflow_type") or "").strip() or None)
+                or (
+                    None
+                    if existing is None
+                    else str(existing.get("workflow_type") or "").strip() or None
+                )
             ),
         )
 
@@ -1171,10 +1180,14 @@ class ChatService:
         payload = self._conversation_layer.deliver_next_message(session_id)
         message = payload.get("message")
         request_id = self._latest_assistant_request_id(session_id)
-        artifacts = [
-            self._artifact_response_payload(record)
-            for record in self.store.list_artifacts_for_request(request_id)
-        ] if request_id else []
+        artifacts = (
+            [
+                self._artifact_response_payload(record)
+                for record in self.store.list_artifacts_for_request(request_id)
+            ]
+            if request_id
+            else []
+        )
         if isinstance(message, dict):
             memory = payload.get("working_memory") or {}
             self.store.add_message(
@@ -1445,22 +1458,30 @@ class ChatService:
         self.store.update_task(root_task_id, input_json=root_input)
 
     def _clear_root_pending_interaction(self, root_task_id: str) -> None:
-        root_task = self.store.get_task(root_task_id)
+        try:
+            root_task = self.store.get_task(root_task_id)
+        except KeyError:
+            return
         root_input = dict(root_task.input_json or {})
         pending = dict(root_input.get(_WORK_PENDING_INTERACTION_KEY) or {})
         if not pending:
             return
-        pending.update({
-            "active": False,
-            "updated_at": now_iso(),
-        })
+        pending.update(
+            {
+                "active": False,
+                "updated_at": now_iso(),
+            }
+        )
         root_input[_WORK_PENDING_INTERACTION_KEY] = pending
         self.store.update_task(root_task_id, input_json=root_input)
 
     def _set_root_group_chat_state(self, root_task_id: str, state: dict[str, Any] | None) -> None:
         if not isinstance(state, dict):
             return
-        root_task = self.store.get_task(root_task_id)
+        try:
+            root_task = self.store.get_task(root_task_id)
+        except KeyError:
+            return
         root_input = dict(root_task.input_json or {})
         root_input[_WORK_GROUP_CHAT_STATE_KEY] = dict(state)
         self.store.update_task(root_task_id, input_json=root_input)
@@ -1504,9 +1525,7 @@ class ChatService:
                 "active_work_session_id": active_work_session_id,
             },
         )
-        final_message = (
-            "Stopped that task. I won't continue it unless you ask me to restart it."
-        )
+        final_message = "Stopped that task. I won't continue it unless you ask me to restart it."
         self.store.add_message(
             visible_session_id,
             "assistant",
@@ -1859,8 +1878,14 @@ class ChatService:
             )
 
         # ---- persist tool invocation traces ----
-        direct_tool_records = [] if run_result is None else self._normalize_direct_tool_trace_records(run_result)
-        delegated_tool_records = [] if manager_result is None else self._normalize_delegated_tool_trace_records(manager_result)
+        direct_tool_records = (
+            [] if run_result is None else self._normalize_direct_tool_trace_records(run_result)
+        )
+        delegated_tool_records = (
+            []
+            if manager_result is None
+            else self._normalize_delegated_tool_trace_records(manager_result)
+        )
         tool_trace_ids = self._persist_tool_trace_records(
             session_id=session_id,
             request_id=request_id,
@@ -1911,16 +1936,24 @@ class ChatService:
         if artifacts:
             result_json = {**result_json, "artifacts": artifacts}
         if task_status == TASK_STATUS_WAITING_INPUT and input_prompt:
-            group_chat_state = result_json.get("group_chat_state") if isinstance(result_json, dict) else None
+            group_chat_state = (
+                result_json.get("group_chat_state") if isinstance(result_json, dict) else None
+            )
             self._set_root_group_chat_state(root_task_id, group_chat_state)
             pending_request_id = None
             requesting_agent_id = None
             requesting_agent_name = None
             pending_reason = None
             if isinstance(result_json, dict):
-                pending_request_id = str(result_json.get("pending_request_id") or "").strip() or None
-                requesting_agent_id = str(result_json.get("requesting_agent_id") or "").strip() or None
-                requesting_agent_name = str(result_json.get("requesting_agent_name") or "").strip() or None
+                pending_request_id = (
+                    str(result_json.get("pending_request_id") or "").strip() or None
+                )
+                requesting_agent_id = (
+                    str(result_json.get("requesting_agent_id") or "").strip() or None
+                )
+                requesting_agent_name = (
+                    str(result_json.get("requesting_agent_name") or "").strip() or None
+                )
                 pending_reason = str(result_json.get("reason") or "").strip() or None
             self._set_root_pending_interaction(
                 root_task_id,
@@ -1940,8 +1973,12 @@ class ChatService:
                     "root_task_id": root_task_id,
                     "request_status": request_status,
                     "task_status": task_status,
-                    "workflow_type": manager_result.workflow_type if manager_result is not None else None,
-                    "child_task_ids": manager_result.child_task_ids if manager_result is not None else [],
+                    "workflow_type": manager_result.workflow_type
+                    if manager_result is not None
+                    else None,
+                    "child_task_ids": manager_result.child_task_ids
+                    if manager_result is not None
+                    else [],
                     "waiting_task_id": waiting_task_id,
                     "input_prompt": input_prompt,
                     "awaiting_user_input": True,
@@ -2011,16 +2048,23 @@ class ChatService:
                     "runtime": "maf_agent",
                     "response_mode": response_mode,
                     "task_status": task_status,
-                    "workflow_type": manager_result.workflow_type if manager_result is not None else None,
+                    "workflow_type": manager_result.workflow_type
+                    if manager_result is not None
+                    else None,
                     "waiting_task_id": waiting_task_id,
                     "input_prompt": input_prompt,
                     "awaiting_user_input": True,
                 },
             )
-            response_messages = [*response_messages, {"text": input_prompt, "delay_ms": 0, "agent_name": "Chanakya"}]
+            response_messages = [
+                *response_messages,
+                {"text": input_prompt, "delay_ms": 0, "agent_name": "Chanakya"},
+            ]
         elif task_status != TASK_STATUS_WAITING_INPUT:
             self._clear_root_pending_interaction(root_task_id)
-            group_chat_state = result_json.get("group_chat_state") if isinstance(result_json, dict) else None
+            group_chat_state = (
+                result_json.get("group_chat_state") if isinstance(result_json, dict) else None
+            )
             self._set_root_group_chat_state(root_task_id, group_chat_state)
             actual_runtime_meta = (
                 runtime_meta
@@ -2393,7 +2437,9 @@ class ChatService:
         )
         if work_id is not None:
             with self._work_lock(work_id):
-                return self._submit_task_input_locked(task_id, message, task, request, session_id, work_id)
+                return self._submit_task_input_locked(
+                    task_id, message, task, request, session_id, work_id
+                )
         return self._submit_task_input_locked(task_id, message, task, request, session_id, work_id)
 
     def _submit_task_input_locked(
@@ -2495,16 +2541,26 @@ class ChatService:
         )
         delegated_tool_calls_used = len(delegated_tool_records)
         if result.task_status == TASK_STATUS_WAITING_INPUT and result.input_prompt:
-            group_chat_state = result.result_json.get("group_chat_state") if isinstance(result.result_json, dict) else None
+            group_chat_state = (
+                result.result_json.get("group_chat_state")
+                if isinstance(result.result_json, dict)
+                else None
+            )
             self._set_root_group_chat_state(root_task_id, group_chat_state)
             pending_request_id = None
             requesting_agent_id = None
             requesting_agent_name = None
             pending_reason = None
             if isinstance(result.result_json, dict):
-                pending_request_id = str(result.result_json.get("pending_request_id") or "").strip() or None
-                requesting_agent_id = str(result.result_json.get("requesting_agent_id") or "").strip() or None
-                requesting_agent_name = str(result.result_json.get("requesting_agent_name") or "").strip() or None
+                pending_request_id = (
+                    str(result.result_json.get("pending_request_id") or "").strip() or None
+                )
+                requesting_agent_id = (
+                    str(result.result_json.get("requesting_agent_id") or "").strip() or None
+                )
+                requesting_agent_name = (
+                    str(result.result_json.get("requesting_agent_name") or "").strip() or None
+                )
                 pending_reason = str(result.result_json.get("reason") or "").strip() or None
             self._set_root_pending_interaction(
                 root_task_id,
@@ -2596,7 +2652,11 @@ class ChatService:
             )
         elif result.task_status != TASK_STATUS_WAITING_INPUT:
             self._clear_root_pending_interaction(root_task_id)
-            group_chat_state = result.result_json.get("group_chat_state") if isinstance(result.result_json, dict) else None
+            group_chat_state = (
+                result.result_json.get("group_chat_state")
+                if isinstance(result.result_json, dict)
+                else None
+            )
             self._set_root_group_chat_state(root_task_id, group_chat_state)
             base_metadata = {
                 "runtime": "maf_agent",
@@ -2723,7 +2783,10 @@ class ChatService:
             waiting_task_id=result.waiting_task_id,
             input_prompt=result.input_prompt,
             messages=(
-                [*visible_messages, {"text": result.input_prompt, "delay_ms": 0, "agent_name": "Chanakya"}]
+                [
+                    *visible_messages,
+                    {"text": result.input_prompt, "delay_ms": 0, "agent_name": "Chanakya"},
+                ]
                 if result.task_status == TASK_STATUS_WAITING_INPUT and result.input_prompt
                 else visible_messages or [{"text": result.text, "delay_ms": 0}]
             ),

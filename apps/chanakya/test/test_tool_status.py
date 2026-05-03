@@ -1,4 +1,9 @@
-from chanakya.services.tool_loader import initialize_all_tools, get_cached_tools, get_tools_availability
+from chanakya.services.tool_loader import (
+    get_cached_tools,
+    get_tools_availability,
+    initialize_all_tools,
+)
+
 
 def main() -> None:
     initialize_all_tools()

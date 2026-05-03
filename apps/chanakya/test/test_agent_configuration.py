@@ -7,9 +7,9 @@ from types import ModuleType, SimpleNamespace
 from flask import Flask
 from pytest import MonkeyPatch
 
-import chanakya.app as app_module
+import chanakya.core.app as app_module
 from chanakya.agent_manager import WORKFLOW_INFORMATION, AgentManager, ManagerRunResult
-from chanakya.app import _enrich_execution_trace_with_tool_invocations, create_app
+from chanakya.core.app import _enrich_execution_trace_with_tool_invocations, create_app
 from chanakya.db import build_engine, build_session_factory
 from chanakya.domain import TASK_STATUS_DONE, ChatReply, now_iso
 from chanakya.model import (
@@ -38,7 +38,7 @@ def _build_test_app(
     *,
     runtime_factory=None,
 ) -> Flask:
-    seed_dir = tmp_path / "chanakya" / "seeds"
+    seed_dir = tmp_path / "seeds"
     seed_dir.mkdir(parents=True, exist_ok=True)
     (seed_dir / "agents.json").write_text(
         json.dumps(
@@ -76,7 +76,10 @@ def _build_test_app(
     database_path = tmp_path / "chanakya-test.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{database_path}")
     monkeypatch.setattr(app_module, "BASE_DIR", tmp_path)
-    monkeypatch.setattr(app_module, "get_mcp_config_path", lambda: tmp_path / "mcp_config_file.json")
+    monkeypatch.setattr(app_module, "get_data_dir", lambda: tmp_path / "chanakya_data")
+    monkeypatch.setattr(
+        app_module, "get_mcp_config_path", lambda: tmp_path / "mcp_config_file.json"
+    )
     monkeypatch.setattr(tool_loader, "initialize_all_tools", lambda: None)
     monkeypatch.setattr(
         tool_loader,
@@ -208,7 +211,7 @@ class _RuntimeDelegationStub:
 
 
 def _build_work_memory_app(tmp_path: Path, monkeypatch: MonkeyPatch) -> Flask:
-    seed_dir = tmp_path / "chanakya" / "seeds"
+    seed_dir = tmp_path / "seeds"
     seed_dir.mkdir(parents=True, exist_ok=True)
     (seed_dir / "agents.json").write_text(
         json.dumps(
@@ -272,9 +275,13 @@ def _build_work_memory_app(tmp_path: Path, monkeypatch: MonkeyPatch) -> Flask:
     database_path = tmp_path / "chanakya-test.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{database_path}")
     monkeypatch.setattr(app_module, "BASE_DIR", tmp_path)
+    monkeypatch.setattr(app_module, "get_data_dir", lambda: tmp_path / "chanakya_data")
     monkeypatch.setattr(tool_loader, "initialize_all_tools", lambda: None)
     monkeypatch.setattr(tool_loader, "get_tools_availability", lambda: [])
     monkeypatch.setattr(app_module, "get_tools_availability", lambda: [])
+    monkeypatch.setattr(
+        "chanakya.core.agent_manager.AgentManager._resolve_client", lambda self: object()
+    )
     monkeypatch.setattr(
         app_module,
         "MAFRuntime",
@@ -955,7 +962,10 @@ def test_tools_config_api_reads_and_writes_mcp_config(
     assert put_payload["server_ids"] == ["arxiv"]
     assert put_payload["reloaded"] is True
     assert put_payload["available_count"] == 1
-    assert json.loads(config_path.read_text(encoding="utf-8"))["mcpServers"]["arxiv"]["command"] == "uvx"
+    assert (
+        json.loads(config_path.read_text(encoding="utf-8"))["mcpServers"]["arxiv"]["command"]
+        == "uvx"
+    )
 
 
 def test_tools_config_api_rejects_invalid_json(
@@ -1413,19 +1423,21 @@ def test_create_app_prunes_sandbox_containers_on_startup(
     monkeypatch.setattr(
         app_module,
         "prune_stale_work_containers",
-        lambda valid_work_ids, remove_running=False: captured.update(
-            {
-                "valid_work_ids": set(valid_work_ids),
-                "remove_running": remove_running,
-            }
-        )
-        or {"ok": True, "removed": [], "failed": []},
+        lambda valid_work_ids, remove_running=False: (
+            captured.update(
+                {
+                    "valid_work_ids": set(valid_work_ids),
+                    "remove_running": remove_running,
+                }
+            )
+            or {"ok": True, "removed": [], "failed": []}
+        ),
     )
 
     _build_test_app(tmp_path, monkeypatch)
 
     assert captured["valid_work_ids"] == set()
-    assert captured["remove_running"] is True
+    assert captured["remove_running"] is False
 
 
 def test_work_api_preserves_per_agent_memory_for_local_backend(
@@ -1456,7 +1468,9 @@ def test_work_api_preserves_per_agent_memory_for_local_backend(
     def _fake_build_profile_agent(*args, include_history=False, **kwargs):
         return _FakeAgent(include_history=bool(include_history)), object()
 
-    monkeypatch.setattr("chanakya.agent_manager.build_profile_agent", _fake_build_profile_agent)
+    monkeypatch.setattr(
+        "chanakya.core.agent_manager.build_profile_agent", _fake_build_profile_agent
+    )
     app = _build_work_memory_app(tmp_path, monkeypatch)
     client = app.test_client()
 

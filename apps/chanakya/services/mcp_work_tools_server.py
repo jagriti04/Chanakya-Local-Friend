@@ -7,8 +7,8 @@ send messages into work sessions, and read pending notifications
 
 from __future__ import annotations
 
-from pathlib import Path
 import threading
+from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -245,7 +245,9 @@ def _build_work_tools_server() -> FastMCP:
     chat_service = _build_chat_service(store, session_factory)
 
     @mcp.tool()
-    def create_work_with_message(title: str, description: str = "", message: str = "") -> dict[str, Any]:
+    def create_work_with_message(
+        title: str, description: str = "", message: str = ""
+    ) -> dict[str, Any]:
         """Create a new work item and send the initial user request to it.
 
         Use this when the user explicitly asks to create or start a new work

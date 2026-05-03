@@ -4,7 +4,7 @@ from chanakya.agent.runtime import create_openai_chat_client
 
 
 def test_create_openai_chat_client_forwards_default_headers():
-    with patch("chanakya.agent.runtime.OpenAIChatClient") as mock_client:
+    with patch("chanakya.agent.runtime.OpenAIChatCompletionClient") as mock_client:
         create_openai_chat_client(
             model_id="test-model",
             env_file_path=".env",

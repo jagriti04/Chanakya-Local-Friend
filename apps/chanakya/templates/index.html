@@ -7078,7 +7078,7 @@
       const newStr = JSON.stringify(items);
       if (newStr === _cachedAgentsStr) return;
       _cachedAgentsStr = newStr;
-      
+
       allAgents = Array.isArray(items) ? items.slice() : [];
       renderWorkerFilters(allAgents);
       const filteredItems = allAgents.filter(matchesAgentFilter);
