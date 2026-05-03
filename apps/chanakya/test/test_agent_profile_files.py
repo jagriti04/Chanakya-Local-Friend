@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from chanakya.agent.profile_files import (
     FileAccessGuard,
     ensure_agent_profile_files,

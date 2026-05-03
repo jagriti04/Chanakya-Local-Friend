@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from chanakya.db import build_engine, build_session_factory, init_database
+from chanakya.services import sandbox_workspace
 from chanakya.services.mcp_artifact_tools_server import (
     _create_artifact,
     _delete_artifact,
@@ -10,8 +11,6 @@ from chanakya.services.mcp_artifact_tools_server import (
     _update_artifact,
 )
 from chanakya.store import ChanakyaStore
-
-from chanakya.services import sandbox_workspace
 
 
 def _build_store() -> ChanakyaStore:

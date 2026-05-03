@@ -26,6 +26,7 @@ dev = [
 
 [tool.ruff]
 line-length = 100
+src = ["apps"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

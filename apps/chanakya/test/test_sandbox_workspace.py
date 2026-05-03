@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import chanakya.services.sandbox_workspace as sandbox_workspace
 import pytest
+
+import chanakya.services.sandbox_workspace as sandbox_workspace
 
 
 def test_resolve_shared_workspace_uses_artifacts_for_empty_work_id(

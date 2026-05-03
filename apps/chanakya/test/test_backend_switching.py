@@ -14,6 +14,9 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
+from flask import Flask
+from pytest import MonkeyPatch
+
 import chanakya.app as app_module
 from chanakya.agent.runtime import MAFRuntime, normalize_runtime_backend
 from chanakya.app import _normalize_runtime_config, _parse_runtime_config_payload, create_app
@@ -21,9 +24,6 @@ from chanakya.conversation_layer_support import get_conversation_preference_defa
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.domain import ChatReply
 from chanakya.model import AgentProfileModel
-from flask import Flask
-from pytest import MonkeyPatch
-
 from chanakya.services import tool_loader
 
 # ---------------------------------------------------------------------------
