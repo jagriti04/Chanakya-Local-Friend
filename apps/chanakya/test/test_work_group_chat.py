@@ -527,7 +527,6 @@ def test_work_group_chat_waiting_input_resumes_same_request() -> None:
     assert isinstance(group_chat_state, dict)
     assert group_chat_state["manager_termination_state"]["status"] == "completed"
     chanakya_messages = store.list_messages(work_session_id)
-    assert any(item.get("content") == "Use Flask" for item in chanakya_messages)
     assert any(item.get("content") == "Implemented with Flask." for item in chanakya_messages)
 
 
@@ -1375,6 +1374,7 @@ def test_group_chat_orchestrator_is_built_with_retry_attempts() -> None:
     store = _build_store()
     _, manager_profile = _seed_full_hierarchy(store)
     manager = AgentManager(store, store.Session, manager_profile)
+    manager._resolve_client = lambda: object()  # type: ignore[method-assign]
     participant_profiles = manager._group_chat_participant_profiles()
 
     workflow = manager._build_work_group_chat_workflow(

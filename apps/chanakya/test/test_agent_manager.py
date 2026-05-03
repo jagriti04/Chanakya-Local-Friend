@@ -212,6 +212,7 @@ def test_manager_profile_prompt_fallback_persists_cto_review_messages(
     monkeypatch.setattr(
         "chanakya.core.agent_manager.build_profile_agent", _fake_build_profile_agent
     )
+    monkeypatch.setattr(manager, "_resolve_client", lambda: object())
 
     tokens = manager.bind_execution_context(
         session_id="session_root", request_id="req_test", work_id="work_cto_review"
@@ -311,6 +312,7 @@ def test_work_agent_memory_is_isolated_per_agent_for_local_backend(
     monkeypatch.setattr(
         "chanakya.core.agent_manager.build_profile_agent", _fake_build_profile_agent
     )
+    monkeypatch.setattr(manager, "_resolve_client", lambda: object())
 
     tokens = manager.bind_execution_context(
         session_id="session_work_local",
@@ -650,6 +652,7 @@ def test_manager_profile_prompt_extracts_text_from_structured_response(
     monkeypatch.setattr(
         "chanakya.core.agent_manager.build_profile_agent", _fake_build_profile_agent
     )
+    monkeypatch.setattr(manager, "_resolve_client", lambda: object())
 
     result = manager._run_profile_prompt_with_options(
         developer_profile,

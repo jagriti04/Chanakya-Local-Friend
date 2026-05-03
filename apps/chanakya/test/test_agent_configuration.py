@@ -280,6 +280,9 @@ def _build_work_memory_app(tmp_path: Path, monkeypatch: MonkeyPatch) -> Flask:
     monkeypatch.setattr(tool_loader, "get_tools_availability", lambda: [])
     monkeypatch.setattr(app_module, "get_tools_availability", lambda: [])
     monkeypatch.setattr(
+        "chanakya.core.agent_manager.AgentManager._resolve_client", lambda self: object()
+    )
+    monkeypatch.setattr(
         app_module,
         "MAFRuntime",
         lambda profile, session_factory: _RuntimeDelegationStub(profile),
