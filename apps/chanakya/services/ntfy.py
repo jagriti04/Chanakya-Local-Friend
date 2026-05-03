@@ -7,6 +7,7 @@ from typing import Any
 from urllib import error, parse, request
 
 import segno
+
 from chanakya.config import get_ntfy_default_server_url, get_ntfy_timeout_seconds
 from chanakya.domain import TASK_STATUS_DONE, TASK_STATUS_FAILED, TASK_STATUS_WAITING_INPUT
 from chanakya.store import ChanakyaStore

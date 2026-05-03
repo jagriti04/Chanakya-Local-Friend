@@ -11,6 +11,9 @@ import threading
 from pathlib import Path
 from typing import Any
 
+from mcp.server.fastmcp import FastMCP
+from sqlalchemy.orm import Session, sessionmaker
+
 from chanakya.agent.runtime import MAFRuntime
 from chanakya.agent_manager import AgentManager
 from chanakya.chat_service import ChatService
@@ -24,8 +27,6 @@ from chanakya.services.mcp_feedback import (
     build_wrong_id_payload,
 )
 from chanakya.store import ChanakyaStore
-from mcp.server.fastmcp import FastMCP
-from sqlalchemy.orm import Session, sessionmaker
 
 
 def _build_store() -> tuple[ChanakyaStore, sessionmaker[Session]]:

@@ -11,6 +11,8 @@ from urllib.request import urlopen
 
 from agent_framework import Agent, AgentResponse, Message
 from agent_framework.openai import OpenAIChatCompletionClient
+from sqlalchemy.orm import Session, sessionmaker
+
 from chanakya.agent.profile_files import load_agent_prompt
 from chanakya.agent.prompt import inject_tools_into_prompt
 from chanakya.config import (
@@ -26,7 +28,6 @@ from chanakya.model import AgentProfileModel
 from chanakya.services.async_loop import run_in_maf_loop
 from chanakya.services.tool_loader import get_cached_tools, get_tools_availability
 from chanakya.store import AgentSessionContextRepository
-from sqlalchemy.orm import Session, sessionmaker
 
 
 @dataclass(slots=True)

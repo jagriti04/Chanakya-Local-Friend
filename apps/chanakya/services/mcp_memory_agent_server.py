@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from mcp.server.fastmcp import FastMCP
+from sqlalchemy.orm import Session, sessionmaker
+
 from chanakya.config import get_database_url
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.services.memory_manager_service import MemoryManagerService
 from chanakya.store import ChanakyaStore
-from mcp.server.fastmcp import FastMCP
-from sqlalchemy.orm import Session, sessionmaker
 
 
 def _build_store() -> tuple[ChanakyaStore, sessionmaker[Session]]:
