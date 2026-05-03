@@ -1089,7 +1089,7 @@ def test_history_context_stats_are_persisted_in_message_metadata() -> None:
     run_in_maf_loop(
         provider.save_messages(
             "session_hist_stats",
-            [Message(role="assistant", text="Final answer")],
+            [Message("assistant", ["Final answer"])],
             state={
                 "request_id": "req_hist_stats",
                 "history_context_stats": {

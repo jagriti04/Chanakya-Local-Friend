@@ -17,10 +17,10 @@ from types import SimpleNamespace
 from flask import Flask
 from pytest import MonkeyPatch
 
-import chanakya.app as app_module
+import chanakya.core.app as app_module
 from chanakya.agent.runtime import MAFRuntime, normalize_runtime_backend
-from chanakya.app import _normalize_runtime_config, _parse_runtime_config_payload, create_app
 from chanakya.conversation_layer_support import get_conversation_preference_defaults
+from chanakya.core.app import _normalize_runtime_config, _parse_runtime_config_payload, create_app
 from chanakya.db import build_engine, build_session_factory, init_database
 from chanakya.domain import ChatReply
 from chanakya.model import AgentProfileModel
@@ -100,7 +100,7 @@ def _build_test_app(
     *,
     chat_service_factory=None,
 ) -> Flask:
-    seed_dir = tmp_path / "chanakya" / "seeds"
+    seed_dir = tmp_path / "seeds"
     seed_dir.mkdir(parents=True, exist_ok=True)
     (seed_dir / "agents.json").write_text(
         json.dumps(

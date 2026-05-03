@@ -864,6 +864,7 @@ def test_group_chat_recovers_false_negative_failure_when_developer_evidence_exis
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_false_negative")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
@@ -932,6 +933,7 @@ def test_group_chat_recovers_successful_information_followup_from_bad_failure_pa
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_info_followup")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
@@ -967,6 +969,7 @@ def test_group_chat_save_followup_stops_once_workspace_path_is_reported() -> Non
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_save_followup")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [
@@ -998,6 +1001,7 @@ def test_group_chat_max_rounds_falls_back_to_success_when_visible_report_is_suff
     chanakya, manager_profile = _seed_full_hierarchy(store)
     work_session_id = _create_work_with_sessions(store, "work_report_rounds")
     manager = AgentManager(store, store.Session, manager_profile)
+    manager.completion_adjudication_runner = _TrackingManager._adjudicate_completion
 
     manager._build_work_group_chat_workflow = lambda **kwargs: _FakeWorkflow(  # type: ignore[method-assign]
         lambda seeded: [

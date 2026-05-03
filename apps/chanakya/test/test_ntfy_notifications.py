@@ -6,9 +6,9 @@ from pathlib import Path
 from flask import Flask
 from pytest import MonkeyPatch
 
-import chanakya.app as app_module
+import chanakya.core.app as app_module
 from chanakya.agent.runtime import RunResult
-from chanakya.app import create_app
+from chanakya.core.app import create_app
 from chanakya.services import tool_loader
 from chanakya.services.ntfy import NtfyPublishResult
 
@@ -17,10 +17,16 @@ class _RuntimeStub:
     def __init__(self, profile) -> None:
         self.profile = profile
 
-    def runtime_metadata(self, model_id: str | None = None) -> dict[str, str | None]:
+    def runtime_metadata(
+        self,
+        model_id: str | None = None,
+        **kwargs,
+    ) -> dict[str, str | None]:
         return {
             "model": model_id or "test-model",
             "endpoint": "http://test-endpoint",
+            "backend": str(kwargs.get("backend") or "local"),
+            "runtime": "maf_agent",
         }
 
     def run(
@@ -29,6 +35,7 @@ class _RuntimeStub:
         message: str,
         request_id: str | None = None,
         model_id: str | None = None,
+        **kwargs,
     ):
         return RunResult(
             text="Finished the task successfully with the requested summary.",
@@ -81,10 +88,11 @@ def _build_test_app(
     *,
     runtime_factory=None,
 ) -> Flask:
-    _seed_agents(tmp_path / "chanakya" / "seeds")
+    _seed_agents(tmp_path / "seeds")
     database_path = tmp_path / "chanakya-test.db"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{database_path}")
     monkeypatch.setattr(app_module, "BASE_DIR", tmp_path)
+    monkeypatch.setattr(app_module, "get_data_dir", lambda: tmp_path / "chanakya_data")
     monkeypatch.setattr(tool_loader, "initialize_all_tools", lambda: None)
     monkeypatch.setattr(app_module, "get_tools_availability", lambda: [])
     monkeypatch.setattr(tool_loader, "get_tools_availability", lambda: [])
