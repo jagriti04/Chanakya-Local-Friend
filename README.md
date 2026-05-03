@@ -1,6 +1,6 @@
 # Chanakya
 
-Chanakya is a **task orchestration system powered by Microsoft Agent Framework**. It provides a single user-facing assistant while a network of intelligent agents collaborates in the background to complete tasks, provide insights, and maintain ongoing workflows.
+Chanakya is an **advanced, open-source, and self-hostable voice assistant** designed for privacy, power, and flexibility. It can leverage local AI/ML models to help keep data under your control and supports connecting to third-party MCP servers through configuration. A network of intelligent agents collaborates to complete tasks, provide insights, and maintain ongoing workflows.
 
 - Chanakya Flask app on `http://127.0.0.1:5513`
 - AIR service on `http://127.0.0.1:5512`
