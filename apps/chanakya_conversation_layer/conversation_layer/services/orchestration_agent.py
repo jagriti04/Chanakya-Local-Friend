@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from agent_framework import Agent
-from agent_framework.openai import OpenAIChatClient
+from agent_framework.openai import OpenAIChatCompletionClient
 from openai import AsyncOpenAI
 
 
@@ -239,15 +239,15 @@ class MAFOrchestrationAgent:
         self,
         model_id: str,
         default_headers: dict[str, str] | None = None,
-    ) -> OpenAIChatClient:
+    ) -> OpenAIChatCompletionClient:
         async_client = AsyncOpenAI(
             api_key=self.api_key,
             base_url=self.base_url,
             max_retries=0,
-            default_headers=default_headers,
         )
-        return OpenAIChatClient(
+        return OpenAIChatCompletionClient(
             model=model_id,
             async_client=async_client,
             env_file_path=self.env_file_path if os.path.exists(self.env_file_path) else None,
+            default_headers=default_headers,
         )
