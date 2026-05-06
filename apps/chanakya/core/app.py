@@ -347,6 +347,7 @@ def create_app() -> Flask:
     )
 
     data_dir = get_data_dir()
+    project_root = data_dir.parent
     database_url = get_database_url()
     agents_dir = data_dir / "agents"
     agents_dir.mkdir(parents=True, exist_ok=True)
@@ -357,7 +358,9 @@ def create_app() -> Flask:
     store = ChanakyaStore(session_factory)
     load_agent_seeds(store, BASE_DIR / "seeds" / "agents.json")
     sync_default_agent_tools(store)
-    ensure_heartbeat_files(store, BASE_DIR)
+    ensure_heartbeat_files(store, project_root)
+
+    app.config["DATA_DIR"] = data_dir
     get_shared_workspace_root()
     _register_sandbox_shutdown_cleanup()
     sandbox_image_status = ensure_sandbox_image()
@@ -974,7 +977,7 @@ def create_app() -> Flask:
     def api_agents() -> Any:
         agents = []
         for profile in store.list_agent_profiles():
-            heartbeat = read_heartbeat(profile, BASE_DIR)
+            heartbeat = read_heartbeat(profile, get_data_dir().parent)
             agent_payload = profile.to_public_dict()
             agent_payload["heartbeat_preview"] = heartbeat.content_preview
             agents.append(agent_payload)
@@ -1719,7 +1722,7 @@ def create_app() -> Flask:
         heartbeat_path = agent_data["heartbeat_file_path"] or default_heartbeat_relative_path(
             agent_id
         )
-        resolve_heartbeat_path(heartbeat_path, BASE_DIR, agent_id=agent_id)
+        resolve_heartbeat_path(heartbeat_path, get_data_dir().parent, agent_id=agent_id)
 
         profile = AgentProfileModel(
             id=agent_id,
@@ -1737,13 +1740,15 @@ def create_app() -> Flask:
             updated_at=agent_data["timestamp"],
         )
         store.create_agent_profile(profile)
-        ensure_heartbeat_file(profile, BASE_DIR)
+        ensure_heartbeat_file(profile, get_data_dir().parent)
         store.log_event(
             "agent_profile_created",
             {"agent_id": profile.id, "role": profile.role, "name": profile.name},
         )
         payload = profile.to_public_dict()
-        payload["heartbeat_preview"] = read_heartbeat(profile, BASE_DIR).content_preview
+        payload["heartbeat_preview"] = read_heartbeat(
+            profile, get_data_dir().parent
+        ).content_preview
         return jsonify(payload), 201
 
     @app.put("/api/agents/<agent_id>")
@@ -1755,7 +1760,7 @@ def create_app() -> Flask:
             heartbeat_path = agent_data["heartbeat_file_path"] or default_heartbeat_relative_path(
                 agent_id
             )
-            resolve_heartbeat_path(heartbeat_path, BASE_DIR, agent_id=agent_id)
+            resolve_heartbeat_path(heartbeat_path, get_data_dir().parent, agent_id=agent_id)
             profile = store.update_agent_profile(
                 agent_id,
                 name=agent_data["name"],
@@ -1775,13 +1780,15 @@ def create_app() -> Flask:
             message = str(exc.args[0]) if exc.args else str(exc)
             return jsonify({"error": message}), 404
 
-        ensure_heartbeat_file(profile, BASE_DIR)
+        ensure_heartbeat_file(profile, get_data_dir().parent)
         store.log_event(
             "agent_profile_updated",
             {"agent_id": profile.id, "role": profile.role, "name": profile.name},
         )
         payload = profile.to_public_dict()
-        payload["heartbeat_preview"] = read_heartbeat(profile, BASE_DIR).content_preview
+        payload["heartbeat_preview"] = read_heartbeat(
+            profile, get_data_dir().parent
+        ).content_preview
         return jsonify(payload)
 
     @app.get("/api/tool-traces")
@@ -1972,7 +1979,7 @@ def _parse_agent_payload(payload: dict[str, Any]) -> dict[str, Any]:
     heartbeat_enabled = _parse_required_bool(payload, "heartbeat_enabled", default=False)
     heartbeat_file_path = heartbeat_path_value or None
     if heartbeat_file_path is not None:
-        resolve_heartbeat_path(heartbeat_file_path, BASE_DIR)
+        resolve_heartbeat_path(heartbeat_file_path, get_data_dir().parent)
 
     return {
         "name": name,
