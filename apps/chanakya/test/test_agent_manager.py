@@ -667,7 +667,13 @@ def test_manager_profile_prompt_extracts_text_from_structured_response(
 
 def test_normal_chat_uses_classic_runtime_prompt_addendum_for_direct_runs() -> None:
     store = _build_store()
-    chanakya = _seed_agent(store, "agent_chanakya", "Chanakya", "personal_assistant")
+    chanakya = _seed_agent(
+        store,
+        "agent_chanakya",
+        "Chanakya",
+        "personal_assistant",
+        tool_ids=["mcp_artifact_tools"],
+    )
     runtime = _RuntimeStub(chanakya)
     service = ChatService(store, cast(MAFRuntime, runtime), manager=None)
 
@@ -676,6 +682,7 @@ def test_normal_chat_uses_classic_runtime_prompt_addendum_for_direct_runs() -> N
     assert reply.route == "direct_answer"
     assert runtime.last_prompt_addendum is not None
     assert "Optimize for speed and direct completion" in runtime.last_prompt_addendum
+    assert "always pass the current `session_id` and `request_id`" in runtime.last_prompt_addendum
 
 
 def test_work_mode_uses_work_runtime_prompt_addendum_for_direct_runs() -> None:
