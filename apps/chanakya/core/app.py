@@ -360,7 +360,6 @@ def create_app() -> Flask:
     sync_default_agent_tools(store)
     ensure_heartbeat_files(store, project_root)
 
-    app.config["DATA_DIR"] = data_dir
     get_shared_workspace_root()
     _register_sandbox_shutdown_cleanup()
     sandbox_image_status = ensure_sandbox_image()
