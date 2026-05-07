@@ -793,7 +793,8 @@ class ChatService:
         if has_artifact_tools:
             artifact_prompt += (
                 " Use `mcp_artifact_tools_create_artifact` for new user-facing single-file deliverables "
-                "and `mcp_artifact_tools_update_artifact` when revising an existing artifact."
+                "and `mcp_artifact_tools_update_artifact` when revising an existing artifact. "
+                "For every artifact tool call, always pass the current `session_id` and `request_id` from the execution context above."
             )
             if work_id is None:
                 artifact_prompt += (

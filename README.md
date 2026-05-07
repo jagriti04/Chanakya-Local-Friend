@@ -106,7 +106,15 @@ Start from `.env.example` and copy it into place:
 cp .env.example .env
 ```
 
-At minimum, make sure your local `.env` has working model endpoint and credential values. The exact defaults live in `.env.example`.
+Then edit `.env` with your local values. Replace all placeholder values marked with `<...>`:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OPENAI_BASE_URL` | Your LM Studio or OpenAI-compatible server endpoint | `http://127.0.0.1:1234/v1` |
+| `OPENAI_API_KEY` | API key for your model server | `lm-studio` (or your key) |
+| `DATABASE_URL` | Path to your SQLite database | `sqlite:////home/user/chanakya_data/chanakya.db` |
+
+The defaults in `.env.example` use placeholder values and will not work out of the box.
 
 Common variables used in local development include:
 
